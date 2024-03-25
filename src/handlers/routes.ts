@@ -110,7 +110,9 @@ export const initRoutes = (app: express.Express) => {
     }
 
     try {
+      
       const auditoriumUsecase = new AuditoriumUsecase(AppDataSource);
+
       const deletedAuditorium = await auditoriumUsecase.deleteAuditoriumCollection(req.body.id);
 
       if (deletedAuditorium) {

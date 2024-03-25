@@ -46,6 +46,7 @@ export interface UpdateAuditoriumRequest {
   type?: string;
   capacity?: number;
   handicapAccessible?: boolean;
+  maintenance?:boolean;
 }
 
 export const updateAuditoriumValidation = Joi.object<UpdateAuditoriumRequest>({
@@ -54,6 +55,7 @@ export const updateAuditoriumValidation = Joi.object<UpdateAuditoriumRequest>({
   description: Joi.string().optional(),
   imageUrl: Joi.string().optional().uri(),
   type: Joi.string().optional(),
-  capacity: Joi.number().optional().min(1),
+  capacity: Joi.number().optional().min(15).max(30),
   handicapAccessible: Joi.boolean().optional(),
+  maintenance: Joi.boolean().optional(),
 });

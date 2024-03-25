@@ -1,5 +1,7 @@
 import { DataSource } from "typeorm";
 import { Auditorium } from "../database/entities/auditorium";
+import { Schedule } from "../database/entities/schedule";
+import { Between } from "typeorm";
 import { Image } from "../database/entities/image";
 
 
@@ -15,6 +17,7 @@ export interface UpdateAuditoriumParams {
   type?: string;
   capacity?: number;
   handicapAccessible?: boolean;
+  maintenance?:boolean;
 }
 
 export class AuditoriumUsecase {
@@ -23,8 +26,9 @@ export class AuditoriumUsecase {
   async listAuditorium(
     listAuditoriums: ListAuditorium
   ): Promise<{ auditoriums: Auditorium[]; totalCount: number }> {
-    console.log(listAuditoriums);
     const query = this.db.createQueryBuilder(Auditorium, "auditoriums");
+
+    query.where("auditoriums.maintenance = :maintenance", { maintenance: false });
 
     query.skip((listAuditoriums.page - 1) * listAuditoriums.limit);
     query.take(listAuditoriums.limit);
@@ -41,13 +45,18 @@ export class AuditoriumUsecase {
 
     if (!auditoriumFound) return null;
 
+    const auditoriumCount = await repo.count();
+      if (auditoriumCount <= 10) {
+        throw new Error("At least 10 auditoriums must be present");
+      }
+
     await repo.remove(auditoriumFound);
     return auditoriumFound;
   }
 
 async updateAuditorium(
   id: number,
-  { name, description, type,imageUrl, capacity, handicapAccessible }: UpdateAuditoriumParams
+  { name, description, type,imageUrl, capacity, handicapAccessible, maintenance }: UpdateAuditoriumParams
 ): Promise<Auditorium | null> {
   const repo = this.db.getRepository(Auditorium);
   const auditoriumfound = await repo.findOneBy({ id });
@@ -66,13 +75,39 @@ async updateAuditorium(
     auditoriumfound.imageUrl = imageUrl;
   }
   if (capacity) {
+    if (capacity < 15 || capacity > 30) {
+      throw new Error("Capacity must be between 15 and 30");
+    }
     auditoriumfound.capacity = capacity;
   }
   if (handicapAccessible !== undefined) {
     auditoriumfound.handicapAccessible = handicapAccessible;
   }
+  if (maintenance !== undefined) {
+    auditoriumfound.maintenance = maintenance;
+  }
 
   const auditoriumUpdate = await repo.save(auditoriumfound);
   return auditoriumUpdate;
 }
+
+
+async getAuditoriumSchedule(auditoriumId: number, startDate: Date, endDate: Date): 
+Promise<{ schedule: Schedule; ticketsSold: number }[]> {
+  const scheduleRepo = this.db.getRepository(Schedule);
+
+  const schedules = await scheduleRepo.find({
+    where: {
+      auditorium: { id: auditoriumId },
+      showTime: Between(startDate, endDate)
+    },
+    relations: ["movie", "tickets"]
+  });
+
+  return schedules.map(schedule => ({
+    schedule,
+    ticketsSold: schedule.tickets.length
+  }));
 }
+}
+
