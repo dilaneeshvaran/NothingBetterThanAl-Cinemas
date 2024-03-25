@@ -1,5 +1,7 @@
 import { DataSource } from "typeorm";
 import { Auditorium } from "../database/entities/auditorium";
+import { Image } from "../database/entities/image";
+
 
 export interface ListAuditorium {
   limit: number;
@@ -7,7 +9,12 @@ export interface ListAuditorium {
 }
 
 export interface UpdateAuditoriumParams {
-  seats?: number;
+  name?: string;
+  description?: string;
+  imageUrl?:string;
+  type?: string;
+  capacity?: number;
+  handicapAccessible?: boolean;
 }
 
 export class AuditoriumUsecase {
@@ -38,19 +45,34 @@ export class AuditoriumUsecase {
     return auditoriumFound;
   }
 
-  async updateAuditorium(
-    id: number,
-    { seats }: UpdateAuditoriumParams
-  ): Promise<Auditorium | null> {
-    const repo = this.db.getRepository(Auditorium);
-    const auditoriumfound = await repo.findOneBy({ id });
-    if (auditoriumfound === null) return null;
+async updateAuditorium(
+  id: number,
+  { name, description, type,imageUrl, capacity, handicapAccessible }: UpdateAuditoriumParams
+): Promise<Auditorium | null> {
+  const repo = this.db.getRepository(Auditorium);
+  const auditoriumfound = await repo.findOneBy({ id });
+  if (auditoriumfound === null) return null;
 
-    if (seats) {
-        auditoriumfound.seats = seats;
-    }
-
-    const auditoriumUpdate = await repo.save(auditoriumfound);
-    return auditoriumUpdate;
+  if (name) {
+    auditoriumfound.name = name;
   }
+  if (description) {
+    auditoriumfound.description = description;
+  }
+  if (type) {
+    auditoriumfound.type = type;
+  }
+  if (imageUrl) {
+    auditoriumfound.imageUrl = imageUrl;
+  }
+  if (capacity) {
+    auditoriumfound.capacity = capacity;
+  }
+  if (handicapAccessible !== undefined) {
+    auditoriumfound.handicapAccessible = handicapAccessible;
+  }
+
+  const auditoriumUpdate = await repo.save(auditoriumfound);
+  return auditoriumUpdate;
+}
 }
