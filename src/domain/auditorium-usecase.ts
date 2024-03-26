@@ -40,6 +40,19 @@ export class AuditoriumUsecase {
     };
   }
 
+<<<<<<< HEAD
+=======
+    if (!auditoriumFound) return null;
+
+    const auditoriumCount = await repo.count();
+      if (auditoriumCount <= 10) {
+        throw new Error("At least 10 auditoriums must be present");
+      }
+
+    await repo.remove(auditoriumFound);
+    return auditoriumFound;
+  }
+>>>>>>> 46afc3faaf2724b8166ac345803c8b1b4a0a4f46
 
 async updateAuditorium(
   id: number,
@@ -115,4 +128,3 @@ Promise<{ schedule: Schedule; ticketsSold: number }[]> {
   }));
 }
 }
-
