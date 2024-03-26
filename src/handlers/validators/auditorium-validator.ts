@@ -9,6 +9,7 @@ export interface AuditoriumValidation {
   type: string;
   capacity: number;
   handicapAccessible: boolean;
+  maintenance?:boolean;
 }
 
 export const auditoriumValidation = Joi.object<AuditoriumValidation>({
@@ -18,6 +19,7 @@ export const auditoriumValidation = Joi.object<AuditoriumValidation>({
   type: Joi.string().required(),
   capacity: Joi.number().required().min(1),
   handicapAccessible: Joi.boolean().optional(),
+  maintenance: Joi.boolean().optional()
 });
 
 export interface ListAuditoriumValidation {
@@ -46,6 +48,7 @@ export interface UpdateAuditoriumRequest {
   type?: string;
   capacity?: number;
   handicapAccessible?: boolean;
+  maintenance?:boolean;
 }
 
 export const updateAuditoriumValidation = Joi.object<UpdateAuditoriumRequest>({
@@ -54,6 +57,17 @@ export const updateAuditoriumValidation = Joi.object<UpdateAuditoriumRequest>({
   description: Joi.string().optional(),
   imageUrl: Joi.string().optional().uri(),
   type: Joi.string().optional(),
-  capacity: Joi.number().optional().min(1),
+  capacity: Joi.number().optional().min(15).max(30),
   handicapAccessible: Joi.boolean().optional(),
+  maintenance: Joi.boolean().optional(),
+});
+
+export interface ListAuditoriumScheduleRequest {
+  auditoriumId: number,
+  startDate: Date,
+}
+
+export const listAuditoriumScheduleValidation = Joi.object<ListAuditoriumScheduleRequest>({
+  auditoriumId: Joi.number().required(),
+  startDate: Joi.date().required(),
 });

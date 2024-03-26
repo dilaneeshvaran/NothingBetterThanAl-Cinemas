@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Min, Max } from "class-validator";
 import { Image } from "./image";
 
 
@@ -21,7 +22,12 @@ export class Auditorium {
   type: string;
 
   @Column()
+  @Min(15)
+  @Max(30)
   capacity: number;
+
+  @Column({ type: "boolean", default: false })
+  maintenance: boolean;
 
   @Column({ nullable: true })
   handicapAccessible: boolean;
@@ -34,6 +40,7 @@ export class Auditorium {
     type: string,
     capacity: number,
     handicapAccessible: boolean,
+    maintenance: boolean,
   ) {
     this.id=id;
     this.name = name;
@@ -42,5 +49,6 @@ export class Auditorium {
     this.type = type;
     this.capacity = capacity;
     this.handicapAccessible = handicapAccessible;
+    this.maintenance=maintenance;
   }
 }
