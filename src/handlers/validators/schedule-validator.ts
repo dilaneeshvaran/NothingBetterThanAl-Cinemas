@@ -5,15 +5,15 @@ import { Auditorium } from "../../database/entities/auditorium"
 
 export interface ScheduleValidation {
   date: Date;
-  duration: number;
   movie: Movie;
+  duration:number;
   auditorium:Auditorium
 }
 
 export const scheduleValidation = Joi.object<ScheduleValidation>({
   date: Joi.date().required(),
-  duration: Joi.number().required(),
   movie: Joi.object(Movie).required(),
+  duration:Joi.number().required(),
   auditorium: Joi.object(Auditorium).required(),
 });
 
@@ -39,7 +39,6 @@ export const deleteScheduleValidation = Joi.object<DeleteScheduleValidation>({
 export interface UpdateScheduleValidation {
   id:number;
   date: Date;
-  duration: number;
   movie: Movie;
   auditorium:Auditorium
 }
@@ -47,7 +46,6 @@ export interface UpdateScheduleValidation {
 export const updateScheduleValidation = Joi.object<UpdateScheduleValidation>({
   id:Joi.number().required(),
   date: Joi.date().required(),
-  duration: Joi.number().required(),
   movie: Joi.object(Movie).required(),
   auditorium: Joi.object(Auditorium).required(),
 });

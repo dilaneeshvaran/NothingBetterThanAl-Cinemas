@@ -19,18 +19,22 @@ export class Movie {
   @OneToMany(() => Schedule, (schedule) => schedule.movie)
   schedules: Schedule[];
 
+  @Column()
+  duration:number;
 
   constructor(
     id:number,
     title: string,
     description: string,
     imageUrl: string,
-    schedules: Schedule[]
+    schedules: Schedule[],
+    duration:number
   ) {
     this.id=id;
     this.title = title;
     this.description = description;
     this.imageUrl = imageUrl;
     this.schedules = schedules;
+    this.duration=duration;
   }
 }

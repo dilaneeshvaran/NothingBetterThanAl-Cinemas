@@ -1,5 +1,4 @@
-import { DataSource } from "typeorm";
-import { Between } from "typeorm";
+import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie"
 import { Auditorium } from "../database/entities/auditorium"
@@ -12,7 +11,6 @@ export interface ListSchedule {
   export interface UpdateScheduleParams {
     id:number;
     date: Date;
-    duration: number;
     movie: Movie;
     auditorium:Auditorium
   }
@@ -35,9 +33,23 @@ export class ScheduleUsecase {
         };
       }
 
+      async getScheduleById(scheduleId: number): Promise<Schedule> {
+        const query = this.db.createQueryBuilder(Schedule, "schedules");
+      
+        query.where("schedules.id = :id", { id: scheduleId });
+      
+        const schedule = await query.getOne();
+      
+        if (!schedule) {
+          throw new Error('Schedule not found');
+        }
+      
+        return schedule;
+      }
+
 async updateSchedule(
   id: number,
-  { date, duration,movie, auditorium }: UpdateScheduleParams
+  { date,movie, auditorium }: UpdateScheduleParams
 ): Promise<Schedule | null> {
   const repo = this.db.getRepository(Schedule);
   const scheduleFound = await repo.findOneBy({ id });
@@ -46,19 +58,46 @@ async updateSchedule(
   if (date) {
     scheduleFound.date = date;
   }
-  if (duration) {
-    scheduleFound.duration = duration;
-  }
+    scheduleFound.duration = movie.duration+30;
+  
   if (movie) {
     scheduleFound.movie = movie;
   }
   if (auditorium) {
     scheduleFound.auditorium = auditorium;
   }
-
+  if (await this.doesOverlap(scheduleFound)) {
+    throw new Error("Overlapping schedules are not allowed");
+  }
   const scheduleUpdate = await repo.save(scheduleFound);
   return scheduleUpdate;
 }
+
+async doesOverlap(schedule: Schedule): Promise<boolean> {
+    const repo = this.db.getRepository(Schedule);
+
+    // calculate end time, duration here is in minutes
+    const endTime = new Date(schedule.date.getTime() + schedule.duration * 60000);
+  
+    // check for overlap
+    const overlappingSchedules = await repo.find({
+      where: [
+        {
+          movie: schedule.movie,
+          auditorium: schedule.auditorium,
+          date: LessThanOrEqual(endTime),
+        },
+        {
+          movie: schedule.movie,
+          auditorium: schedule.auditorium,
+          date: MoreThanOrEqual(schedule.date),
+        }
+      ]
+    });
+  
+    return overlappingSchedules.length > 0;
+  }
+
 async deleteSchedule(id: number): Promise<Schedule | null> {
     const repo = this.db.getRepository(Schedule);
     const scheduleFound = await repo.findOneBy({ id });

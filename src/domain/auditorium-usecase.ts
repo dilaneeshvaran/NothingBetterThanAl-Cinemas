@@ -40,6 +40,20 @@ export class AuditoriumUsecase {
     };
   }
 
+  async getAuditoriumById(auditoriumId: number): Promise<Auditorium> {
+    const query = this.db.createQueryBuilder(Auditorium, "auditoriums");
+  
+    query.where("auditoriums.id = :id", { id: auditoriumId });
+  
+    const auditorium = await query.getOne();
+  
+    if (!auditorium) {
+      throw new Error('Auditorium not found');
+    }
+  
+    return auditorium;
+  }
+
 async updateAuditorium(
   id: number,
   { name, description, type,imageUrl, capacity, handicapAccessible, maintenance }: UpdateAuditoriumParams
