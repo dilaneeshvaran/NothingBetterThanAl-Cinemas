@@ -129,8 +129,8 @@ export const initRoutes = (app: express.Express) => {
   });
 
 
-  app.delete("/auditoriums", async (req: Request, res: Response) => {
-    const validation = deleteAuditoriumValidation.validate(req.body);
+  app.delete("/auditoriums/:id", async (req: Request, res: Response) => {
+    const validation = deleteAuditoriumValidation.validate(req.params);
 
     if (validation.error) {
       res
@@ -143,7 +143,7 @@ export const initRoutes = (app: express.Express) => {
       
       const auditoriumUsecase = new AuditoriumUsecase(AppDataSource);
 
-      const deletedAuditorium = await auditoriumUsecase.deleteAuditoriumCollection(req.body.id);
+      const deletedAuditorium = await auditoriumUsecase.deleteAuditoriumCollection(Number(req.params.id));
 
       if (deletedAuditorium) {
         res.status(200).send({
@@ -160,8 +160,9 @@ export const initRoutes = (app: express.Express) => {
 
 
   app.get("/auditoriums/:auditoriumId/schedule/:startDate", async (req: Request, res: Response) => {
-    const validation = listAuditoriumScheduleValidation.validate(req.query);
+    const validation = listAuditoriumScheduleValidation.validate(req.params);
   
+    
     if (validation.error) {
       res
         .status(400)
@@ -250,6 +251,24 @@ export const initRoutes = (app: express.Express) => {
     }
   });
 
+  app.get("/schedules/:startDate/:endDate", async (req: Request, res: Response) => {
+    const { startDate, endDate } = req.params;
+  
+    try {
+      const scheduleUsecase = new ScheduleUsecase(AppDataSource);
+      const schedule = await scheduleUsecase.getScheduleBetween(startDate, endDate);
+  
+      if (schedule) {
+        res.status(200).send(schedule);
+      } else {
+        res.status(404).send({ error: "Schedule not found" });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: "Internal server error" });
+    }
+});
+
 app.post("/schedules", async (req: Request, res: Response) => {
   const validation = scheduleValidation.validate(req.body);
 
@@ -313,8 +332,8 @@ app.post("/schedules", async (req: Request, res: Response) => {
   });
 
 
-  app.delete("/schedules:id", async (req: Request, res: Response) => {
-    const validation = deleteScheduleValidation.validate(req.body);
+  app.delete("/schedules/:id", async (req: Request, res: Response) => {
+    const validation = deleteScheduleValidation.validate(req.params);
 
     if (validation.error) {
       res
@@ -327,7 +346,7 @@ app.post("/schedules", async (req: Request, res: Response) => {
       
       const scheduleUsecase = new ScheduleUsecase(AppDataSource);
 
-      const deletedSchedule = await scheduleUsecase.deleteSchedule(req.body.id);
+      const deletedSchedule = await scheduleUsecase.deleteSchedule(Number(req.params.id));
 
       if (deletedSchedule) {
         res.status(200).send({

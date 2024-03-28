@@ -47,6 +47,20 @@ export class ScheduleUsecase {
         return schedule;
       }
 
+      async getScheduleBetween(startDate: string, endDate: string): Promise<Schedule[]> {
+        const query = this.db.createQueryBuilder(Schedule, "schedules");
+    
+        query.where("schedules.date >= :startDate AND schedules.date <= :endDate", { startDate, endDate });
+    
+        const schedules = await query.getMany();
+    
+        if (!schedules || schedules.length === 0) {
+            throw new Error('No schedules found between the specified dates');
+        }
+    
+        return schedules;
+    }
+
 async updateSchedule(
   id: number,
   { date,movie, auditorium }: UpdateScheduleParams
