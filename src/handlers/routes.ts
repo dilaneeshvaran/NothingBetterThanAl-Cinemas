@@ -12,13 +12,18 @@ listScheduleValidation,
 updateScheduleValidation,
 deleteScheduleValidation
 } from "./validators/schedule-validator";
+import {
+  movieValidation
+} from "./validators/movie-validator";
 import { generateValidationErrorMessage } from "./validators/generate-validation-message";
 import { AppDataSource } from "../database/database";
 import { Auditorium } from "../database/entities/auditorium";
 import { Schedule } from "../database/entities/schedule";
+import { Movie } from "../database/entities/movie";
+import { Ticket } from "../database/entities/ticket";
 import { AuditoriumUsecase } from "../domain/auditorium-usecase";
 import { ScheduleUsecase } from "../domain/schedule-usecase";
-
+import { MovieUsecase } from "../domain/movie-usecase";
 
 export const initRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -154,6 +159,7 @@ export const initRoutes = (app: express.Express) => {
         res.status(404).send({ message: "Auditorium not found" });
       }
     } catch (error) {
+      console.error(error); 
       res.status(500).send({ message: "Internal server error" });
     }
   });
@@ -269,7 +275,7 @@ export const initRoutes = (app: express.Express) => {
     }
 });
 
-/*app.post("/schedules", async (req: Request, res: Response) => {
+app.post("/schedules", async (req: Request, res: Response) => {
   const validation = scheduleValidation.validate(req.body);
 
   if (validation.error) {
@@ -282,14 +288,12 @@ export const initRoutes = (app: express.Express) => {
   const scheduleRequest = validation.value;
   const scheduleRepo = AppDataSource.getRepository(Schedule);
 
-  scheduleRequest.duration = scheduleRequest.movie.duration + 30;
   const scheduleUsecase = new ScheduleUsecase(AppDataSource);
 
   if (await scheduleUsecase.doesOverlap(scheduleRequest as Schedule)) {
     res.status(400).send({ error: "Overlapping schedules are not allowed" });
     return;
   }
-
   try {
     const scheduleCreated = await scheduleRepo.save(scheduleRequest);
     res.status(201).send(scheduleCreated);
@@ -329,7 +333,7 @@ export const initRoutes = (app: express.Express) => {
       console.log(error);
       res.status(500).send({ error: "Internal error" });
     }
-  });*/
+  });
 
 
   app.delete("/schedules/:id", async (req: Request, res: Response) => {
@@ -358,6 +362,32 @@ export const initRoutes = (app: express.Express) => {
       }
     } catch (error) {
       res.status(500).send({ message: "Internal server error" });
+    }
+  });
+
+
+/*--------------------------------------Movie---------------------------------------------*/
+
+
+
+  app.post("/movies", async (req: Request, res: Response) => {
+    const validation = movieValidation.validate(req.body);
+  
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+  
+    const movieRequest = validation.value;
+    const movieRepo = AppDataSource.getRepository(Movie);
+    
+    try {
+      const movieCreated = await movieRepo.save(movieRequest);
+      res.status(201).send(movieCreated);
+    } catch (error) {
+      res.status(500).send({ error: "Internal error" });
     }
   });
 

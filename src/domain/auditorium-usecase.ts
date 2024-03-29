@@ -3,6 +3,7 @@ import { Auditorium } from "../database/entities/auditorium";
 import { Schedule } from "../database/entities/schedule";
 import { Between } from "typeorm";
 import { Image } from "../database/entities/image";
+import { Ticket } from "../database/entities/ticket";
 
 
 export interface ListAuditorium {
@@ -28,7 +29,7 @@ export class AuditoriumUsecase {
   ): Promise<{ auditoriums: Auditorium[]; totalCount: number }> {
     const query = this.db.createQueryBuilder(Auditorium, "auditoriums");
 
-    query.where("auditoriums.maintenance = :maintenance", { maintenance: false });
+    //query.where("auditoriums.maintenance = :maintenance", { maintenance: false });
 
     query.skip((listAuditoriums.page - 1) * listAuditoriums.limit);
     query.take(listAuditoriums.limit);
@@ -109,22 +110,26 @@ async deleteAuditoriumCollection(id: number): Promise<Auditorium | null> {
 async getAuditoriumSchedule(auditoriumId: number, startDate: Date): 
 Promise<{ schedule: Schedule; ticketsSold: number }[]> {
   const scheduleRepo = this.db.getRepository(Schedule);
+  const ticketRepo = this.db.getRepository(Ticket);
 
-  //pour avoir le planning des 7 jours qui suivent le startDate
+  // To get the schedule for the 7 days following the startDate
   const endDate = new Date();
   endDate.setDate(startDate.getDate() + 7);
 
   const schedules = await scheduleRepo.find({
     where: {
-      auditorium: { id: auditoriumId },
+      auditoriumId: auditoriumId,
       date: Between(startDate, endDate)
     },
-    relations: ["movie", "tickets"]
+    relations: ["movie"]
   });
 
-  return schedules.map(schedule => ({
-    schedule,
-    ticketsSold: schedule.tickets.length
+  return Promise.all(schedules.map(async (schedule) => {
+    const tickets = await ticketRepo.find({ where: { scheduleId: schedule.id } });
+    return {
+      schedule,
+      ticketsSold: tickets.length
+    };
   }));
 }
 }

@@ -1,9 +1,7 @@
 import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
-import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie";
 
-
-export interface ListSchedule {
+export interface ListMovie {
     limit: number;
     page: number;
   }
@@ -15,10 +13,10 @@ export interface ListSchedule {
     auditoriumId:number
   }
 
-export class ScheduleUsecase {
+export class MovieUsecase {
     constructor(private readonly db: DataSource) {}
 
-    async listSchedule(
+    /*async listSchedule(
         listSchedule: ListSchedule
       ): Promise<{ schedules: Schedule[]; totalCount: number }> {
         const query = this.db.createQueryBuilder(Schedule, "schedules");
@@ -71,7 +69,9 @@ async updateSchedule(
 
   if (date) {
     scheduleFound.date = date;
-  }  
+  }
+    scheduleFound.duration+=30;
+  
   if (movieId) {
     scheduleFound.movieId = movieId;
   }
@@ -87,17 +87,9 @@ async updateSchedule(
 
 async doesOverlap(schedule: Schedule): Promise<boolean> {
     const repo = this.db.getRepository(Schedule);
-    let scheduleDuration=0;
-    const movieRepo =  this.db.getRepository(Movie);
-    const movie = await movieRepo.findOne({ where: { id: schedule.movieId } });
-
-if (movie) {
-  const movieDuration = movie.duration;
-  scheduleDuration = movieDuration+30;
-}
 
     // calculate end time, duration here is in minutes
-    const endTime = new Date(schedule.date.getTime() + scheduleDuration * 60000);
+    const endTime = new Date(schedule.date.getTime() + schedule.duration * 60000);
   
     // check for overlap
     const overlappingSchedules = await repo.find({
@@ -126,5 +118,5 @@ async deleteSchedule(id: number): Promise<Schedule | null> {
   
     await repo.remove(scheduleFound);
     return scheduleFound;
-  }
+  }*/
 }

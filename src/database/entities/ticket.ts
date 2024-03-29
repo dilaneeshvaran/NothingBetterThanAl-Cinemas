@@ -1,25 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
-import { Auditorium } from "./auditorium";
-import { Schedule } from "./schedule";
+import { Entity, PrimaryGeneratedColumn, Column} from "typeorm";
 
 @Entity()
 export class Ticket {
     @PrimaryGeneratedColumn()
-    id: number;
+    id!: number;
   
-    @ManyToOne(() => Schedule, (schedule) => schedule.tickets)
-    schedule: Schedule;
-
     @Column()
     price:number;
 
+    @Column()
+    movieId:number;
+
+    @Column()
+    scheduleId:number;
+
   constructor(
-    id:number,
-    schedule: Schedule,
-    price:number
+    price:number,
+    movieId:number,
+    scheduleId:number
   ) {
-    this.id=id;
-    this.schedule = schedule;
     this.price=price;
+    this.movieId=movieId;
+    this.scheduleId=scheduleId;
   }
 }

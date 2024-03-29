@@ -6,7 +6,7 @@ import { Image } from "./image";
 @Entity()
 export class Auditorium {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true })
   name: string;
@@ -33,7 +33,6 @@ export class Auditorium {
   handicapAccessible: boolean;
 
   constructor(
-    id:number,
     name: string,
     description: string,
     imageUrl: string,
@@ -42,7 +41,6 @@ export class Auditorium {
     handicapAccessible: boolean,
     maintenance: boolean,
   ) {
-    this.id=id;
     this.name = name;
     this.description = description;
     this.imageUrl = imageUrl;

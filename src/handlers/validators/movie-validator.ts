@@ -1,18 +1,18 @@
 import Joi from "joi";
 
 
-export interface ScheduleValidation {
-  date: Date;
-  movieId: number;
-  auditoriumId:number;
-  duration?:number;
+export interface MovieValidation {
+  title: string;
+  description:string;
+  imageUrl?: string;
+  duration:number
 }
 
-export const scheduleValidation = Joi.object<ScheduleValidation>({
-  date: Joi.date().required(),
-  movieId: Joi.number().required(),
-  auditoriumId: Joi.number().required(),
-  duration:Joi.number().optional()
+export const movieValidation = Joi.object<MovieValidation>({
+  title: Joi.string().required(),
+  description:Joi.string().required(),
+  imageUrl: Joi.string().optional().uri(),
+  duration: Joi.number().required(),
 });
 
 
