@@ -269,7 +269,7 @@ export const initRoutes = (app: express.Express) => {
     }
 });
 
-app.post("/schedules", async (req: Request, res: Response) => {
+/*app.post("/schedules", async (req: Request, res: Response) => {
   const validation = scheduleValidation.validate(req.body);
 
   if (validation.error) {
@@ -329,7 +329,7 @@ app.post("/schedules", async (req: Request, res: Response) => {
       console.log(error);
       res.status(500).send({ error: "Internal error" });
     }
-  });
+  });*/
 
 
   app.delete("/schedules/:id", async (req: Request, res: Response) => {

@@ -2,19 +2,30 @@ import Joi from "joi";
 import { Movie } from "../../database/entities/movie"
 import { Auditorium } from "../../database/entities/auditorium"
 
+const movieSchema = Joi.object({
+  // define properties here
+});
+
+const auditoriumSchema = Joi.object({
+  // define properties here
+});
 
 export interface ScheduleValidation {
   date: Date;
-  movie: Movie;
+  //movie: Movie;
   duration:number;
-  auditorium:Auditorium
+  //auditorium:Auditorium
+  auditorium: string,
+    movie:string
 }
 
 export const scheduleValidation = Joi.object<ScheduleValidation>({
   date: Joi.date().required(),
-  movie: Joi.object(Movie).required(),
+  //movie: Joi.object(Movie).required(),
   duration:Joi.number().required(),
-  auditorium: Joi.object(Auditorium).required(),
+  //auditorium: Joi.object(Auditorium).required(),
+  auditorium: Joi.string,
+    movie:Joi.string
 });
 
 
@@ -39,13 +50,17 @@ export const deleteScheduleValidation = Joi.object<DeleteScheduleValidation>({
 export interface UpdateScheduleValidation {
   id:number;
   date: Date;
-  movie: Movie;
-  auditorium:Auditorium
+  //movie: Movie;
+  //auditorium:Auditorium
+  movie: string;
+  auditorium:string
 }
 
 export const updateScheduleValidation = Joi.object<UpdateScheduleValidation>({
   id:Joi.number().required(),
   date: Joi.date().required(),
-  movie: Joi.object(Movie).required(),
-  auditorium: Joi.object(Auditorium).required(),
+  //movie: Joi.object(Movie).required(),
+  //auditorium: Joi.object(Auditorium).required(),
+    auditorium: Joi.string,
+    movie:Joi.string
 });

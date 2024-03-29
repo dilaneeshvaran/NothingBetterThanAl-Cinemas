@@ -5,10 +5,10 @@ import { Image } from "../../database/entities/image"
 export interface AuditoriumValidation {
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
   type: string;
   capacity: number;
-  handicapAccessible: boolean;
+  handicapAccessible?: boolean;
   maintenance?:boolean;
 }
 

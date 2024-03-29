@@ -6,7 +6,7 @@ export const AppDataSource = new DataSource({
   port: 3306,
   username: "admin",
   password: "admin",
-  database: "nbta",
+  database: "nbta-cinemas",
   logging: true,
   synchronize: true,
   entities: ["src/database/entities/*.ts"],
