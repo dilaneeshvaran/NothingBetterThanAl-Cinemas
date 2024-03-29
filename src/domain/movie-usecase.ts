@@ -16,21 +16,21 @@ export interface ListMovie {
 export class MovieUsecase {
     constructor(private readonly db: DataSource) {}
 
-    /*async listSchedule(
-        listSchedule: ListSchedule
-      ): Promise<{ schedules: Schedule[]; totalCount: number }> {
-        const query = this.db.createQueryBuilder(Schedule, "schedules");
+    async listMovie(
+        listMovie: ListMovie
+      ): Promise<{ movies: Movie[]; totalCount: number }> {
+        const query = this.db.createQueryBuilder(Movie, "movies");
         
-        query.skip((listSchedule.page - 1) * listSchedule.limit);
-        query.take(listSchedule.limit);
+        query.skip((listMovie.page - 1) * listMovie.limit);
+        query.take(listMovie.limit);
     
-        const [schedules, totalCount] = await query.getManyAndCount();
+        const [movies, totalCount] = await query.getManyAndCount();
         return {
-            schedules,
+            movies,
           totalCount,
         };
       }
-
+/*
       async getScheduleById(scheduleId: number): Promise<Schedule> {
         const query = this.db.createQueryBuilder(Schedule, "schedules");
       

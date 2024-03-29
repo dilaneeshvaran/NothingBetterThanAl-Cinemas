@@ -1,14 +1,13 @@
 import express, { Request, Response } from "express";
 import {
     auditoriumValidation,
-  listAuditoriumValidation,
+    listValidation,
   deleteAuditoriumValidation,
   updateAuditoriumValidation,
   listAuditoriumScheduleValidation,
 } from "./validators/auditorium-validator";
 import {
   scheduleValidation,
-listScheduleValidation,
 updateScheduleValidation,
 deleteScheduleValidation
 } from "./validators/schedule-validator";
@@ -31,7 +30,7 @@ export const initRoutes = (app: express.Express) => {
   });
 
   app.get("/auditoriums", async (req: Request, res: Response) => {
-    const validation = listAuditoriumValidation.validate(req.query);
+    const validation = listValidation.validate(req.query);
 
     if (validation.error) {
       res
@@ -209,7 +208,7 @@ export const initRoutes = (app: express.Express) => {
 
 
   app.get("/schedules", async (req: Request, res: Response) => {
-    const validation = listScheduleValidation.validate(req.query);
+    const validation = listValidation.validate(req.query);
 
     if (validation.error) {
       res
@@ -368,6 +367,37 @@ app.post("/schedules", async (req: Request, res: Response) => {
 
 /*--------------------------------------Movie---------------------------------------------*/
 
+
+app.get("/movies", async (req: Request, res: Response) => {
+  const validation = listValidation.validate(req.query);
+
+  if (validation.error) {
+    res
+      .status(400)
+      .send(generateValidationErrorMessage(validation.error.details));
+    return;
+  }
+
+  const listMovieReq = validation.value;
+  let limit = 20;
+  if (listMovieReq.limit) {
+    limit = listMovieReq.limit;
+  }
+  const page = listMovieReq.page ?? 1;
+
+  try {
+    const movieUsecase = new MovieUsecase(AppDataSource);
+    const listMovie = await movieUsecase.listMovie({
+      ...listMovieReq,
+      page,
+      limit,
+    });
+    res.status(200).send(listMovie);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+});
 
 
   app.post("/movies", async (req: Request, res: Response) => {
