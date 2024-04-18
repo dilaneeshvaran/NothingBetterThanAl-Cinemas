@@ -6,11 +6,11 @@ export interface ListTicket {
     page: number;
   }
 
-  export interface UpdateScheduleParams {
+  export interface UpdateTicketParams {
     id:number;
-    date: Date;
-    movieId: number;
-    auditoriumId:number
+    price?: number;
+    movieId?: number;
+    scheduleId?:number
   }
 
 export class TicketUsecase {
@@ -30,93 +30,50 @@ export class TicketUsecase {
           totalCount,
         };
       }
-/*
-      async getScheduleById(scheduleId: number): Promise<Schedule> {
-        const query = this.db.createQueryBuilder(Schedule, "schedules");
+
+      async getTicketById(ticketId: number): Promise<Ticket> {
+        const query = this.db.createQueryBuilder(Ticket, "tickets");
       
-        query.where("schedules.id = :id", { id: scheduleId });
+        query.where("tickets.id = :id", { id: ticketId });
       
-        const schedule = await query.getOne();
+        const ticket = await query.getOne();
       
-        if (!schedule) {
-          throw new Error('Schedule not found');
+        if (!ticket) {
+          throw new Error('Ticket not found');
         }
       
-        return schedule;
+        return ticket;
+      }   
+
+      async updateTicket(
+        id: number,
+        { price,movieId, scheduleId }: UpdateTicketParams
+      ): Promise<Ticket | null> {
+        const repo = this.db.getRepository(Ticket);
+        const ticketFound = await repo.findOneBy({ id });
+        if (ticketFound === null) return null;
+      
+        if (price) {
+          ticketFound.price = price;
+        }        
+        if (movieId) {
+          ticketFound.movieId = movieId;
+        }
+        if (scheduleId) {
+          ticketFound.scheduleId = scheduleId;
+        }
+
+        const ticketUpdate = await repo.save(ticketFound);
+        return ticketUpdate;
       }
 
-      async getScheduleBetween(startDate: string, endDate: string): Promise<Schedule[]> {
-        const query = this.db.createQueryBuilder(Schedule, "schedules");
-    
-        query.where("schedules.date >= :startDate AND schedules.date <= :endDate", { startDate, endDate });
-    
-        const schedules = await query.getMany();
-    
-        if (!schedules || schedules.length === 0) {
-            throw new Error('No schedules found between the specified dates');
-        }
-    
-        return schedules;
-    }
-
-async updateSchedule(
-  id: number,
-  { date,movieId, auditoriumId }: UpdateScheduleParams
-): Promise<Schedule | null> {
-  const repo = this.db.getRepository(Schedule);
-  const scheduleFound = await repo.findOneBy({ id });
-  if (scheduleFound === null) return null;
-
-  if (date) {
-    scheduleFound.date = date;
-  }
-    scheduleFound.duration+=30;
+async deleteTicket(id: number): Promise<Ticket | null> {
+    const repo = this.db.getRepository(Ticket);
+    const ticketFound = await repo.findOneBy({ id });
   
-  if (movieId) {
-    scheduleFound.movieId = movieId;
-  }
-  if (auditoriumId) {
-    scheduleFound.auditoriumId = auditoriumId;
-  }
-  if (await this.doesOverlap(scheduleFound)) {
-    throw new Error("Overlapping schedules are not allowed");
-  }
-  const scheduleUpdate = await repo.save(scheduleFound);
-  return scheduleUpdate;
-}
-
-async doesOverlap(schedule: Schedule): Promise<boolean> {
-    const repo = this.db.getRepository(Schedule);
-
-    // calculate end time, duration here is in minutes
-    const endTime = new Date(schedule.date.getTime() + schedule.duration * 60000);
+    if (!ticketFound) return null;
   
-    // check for overlap
-    const overlappingSchedules = await repo.find({
-      where: [
-        {
-          movieId: schedule.movieId,
-          auditoriumId: schedule.auditoriumId,
-          date: LessThanOrEqual(endTime),
-        },
-        {
-          movieId: schedule.movieId,
-          auditoriumId: schedule.auditoriumId,
-          date: MoreThanOrEqual(schedule.date),
-        }
-      ]
-    });
-  
-    return overlappingSchedules.length > 0;
+    await repo.remove(ticketFound);
+    return ticketFound;
   }
-
-async deleteSchedule(id: number): Promise<Schedule | null> {
-    const repo = this.db.getRepository(Schedule);
-    const scheduleFound = await repo.findOneBy({ id });
-  
-    if (!scheduleFound) return null;
-  
-    await repo.remove(scheduleFound);
-    return scheduleFound;
-  }*/
 }

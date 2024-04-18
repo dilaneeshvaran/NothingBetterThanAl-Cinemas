@@ -16,6 +16,7 @@ import {
   deleteMovieValidation,
   updateMovieValidation
 } from "./validators/movie-validator";
+import {ticketValidation,updateTicketValidation,deleteTicketValidation} from "./validators/ticket-validator"
 import { generateValidationErrorMessage } from "./validators/generate-validation-message";
 import { AppDataSource } from "../database/database";
 import { Auditorium } from "../database/entities/auditorium";
@@ -495,7 +496,7 @@ app.get("/movies/:movieId", async (req: Request, res: Response) => {
       if (deletedMovie) {
         res.status(200).send({
           message: "Movie removed successfully",
-          auditorium: deletedMovie,
+          movie: deletedMovie,
         });
       } else {
         res.status(404).send({ message: "Movie not found" });
@@ -538,5 +539,108 @@ app.get("/movies/:movieId", async (req: Request, res: Response) => {
       res.status(500).send({ error: "Internal server error" });
     }
   });
+
+  app.get("/tickets/:ticketId", async (req: Request, res: Response) => {
+    const { ticketId } = req.params;
+  
+    try {
+      const ticketUsecase = new TicketUsecase(AppDataSource);
+      const ticket = await ticketUsecase.getTicketById(Number(ticketId));
+  
+      if (ticket) {
+        res.status(200).send(ticket);
+      } else {
+        res.status(404).send({ error: "Ticket not found" });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: "Internal server error" });
+    }
+  });
+
+
+  app.post("/tickets", async (req: Request, res: Response) => {
+    const validation = ticketValidation.validate(req.body);
+  
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+  
+    const ticketRequest = validation.value;
+    const ticketRepo = AppDataSource.getRepository(Ticket);
+    
+    try {
+      const ticketCreated = await ticketRepo.save(ticketRequest);
+      res.status(201).send(ticketCreated);
+    } catch (error) {
+      res.status(500).send({ error: "Internal error" });
+    }
+  });
+
+  app.patch("/tickets/:id", async (req: Request, res: Response) => {
+    const validation = updateTicketValidation.validate({
+      ...req.params,
+      ...req.body,
+    });
+
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+
+    const updateTicketReq = validation.value;
+
+    try {
+      const ticketUsecase = new TicketUsecase(AppDataSource);
+      const updatedTicket = await ticketUsecase.updateTicket(updateTicketReq.id, {
+        ...updateTicketReq,
+      });
+      if (updatedTicket === null) {
+        res.status(404).send({
+          error: `ticket ${updateTicketReq.id} not found`,
+        });
+        return;
+      }
+      res.status(200).send(updatedTicket);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: "Internal error" });
+    }
+  });
+
+  app.delete("/tickets/:id", async (req: Request, res: Response) => {
+    const validation = deleteTicketValidation.validate(req.params);
+
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+
+    try {
+      
+      const ticketUsecase = new TicketUsecase(AppDataSource);
+
+      const deletedTicket = await ticketUsecase.deleteTicket(Number(req.params.id));
+
+      if (deletedTicket) {
+        res.status(200).send({
+          message: "Ticket removed successfully",
+          ticket: deletedTicket,
+        });
+      } else {
+        res.status(404).send({ message: "Ticket not found" });
+      }
+    } catch (error) {
+      res.status(500).send({ message: "Internal server error" });
+    }
+  });
+
 };
 
