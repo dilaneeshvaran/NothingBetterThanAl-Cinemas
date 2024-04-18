@@ -12,7 +12,9 @@ updateScheduleValidation,
 deleteScheduleValidation
 } from "./validators/schedule-validator";
 import {
-  movieValidation
+  movieValidation,
+  deleteMovieValidation,
+  updateMovieValidation
 } from "./validators/movie-validator";
 import { generateValidationErrorMessage } from "./validators/generate-validation-message";
 import { AppDataSource } from "../database/database";
@@ -23,6 +25,7 @@ import { Ticket } from "../database/entities/ticket";
 import { AuditoriumUsecase } from "../domain/auditorium-usecase";
 import { ScheduleUsecase } from "../domain/schedule-usecase";
 import { MovieUsecase } from "../domain/movie-usecase";
+import { TicketUsecase } from "../domain/ticket-usecase";
 
 export const initRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -285,6 +288,8 @@ app.post("/schedules", async (req: Request, res: Response) => {
   }
 
   const scheduleRequest = validation.value;
+  scheduleRequest.date = new Date(scheduleRequest.date);
+
   const scheduleRepo = AppDataSource.getRepository(Schedule);
 
   const scheduleUsecase = new ScheduleUsecase(AppDataSource);
@@ -399,6 +404,23 @@ app.get("/movies", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/movies/:movieId", async (req: Request, res: Response) => {
+  const { movieId } = req.params;
+
+  try {
+    const movieUsecase = new MovieUsecase(AppDataSource);
+    const movie = await movieUsecase.getMovieById(Number(movieId));
+
+    if (movie) {
+      res.status(200).send(movie);
+    } else {
+      res.status(404).send({ error: "Movie not found" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+});
 
   app.post("/movies", async (req: Request, res: Response) => {
     const validation = movieValidation.validate(req.body);
@@ -421,5 +443,100 @@ app.get("/movies", async (req: Request, res: Response) => {
     }
   });
 
+  app.patch("/movies/:id", async (req: Request, res: Response) => {
+    const validation = updateMovieValidation.validate({
+      ...req.params,
+      ...req.body,
+    });
+
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+
+    const updateMovieReq = validation.value;
+
+    try {
+      const movieUsecase = new MovieUsecase(AppDataSource);
+      const updatedMovie = await movieUsecase.updateMovie(updateMovieReq.id, {
+        ...updateMovieReq,
+      });
+      if (updatedMovie === null) {
+        res.status(404).send({
+          error: `movie ${updateMovieReq.id} not found`,
+        });
+        return;
+      }
+      res.status(200).send(updatedMovie);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: "Internal error" });
+    }
+  });
+
+  app.delete("/movies/:id", async (req: Request, res: Response) => {
+    const validation = deleteMovieValidation.validate(req.params);
+
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+
+    try {
+      
+      const movieUsecase = new MovieUsecase(AppDataSource);
+
+      const deletedMovie = await movieUsecase.deleteMovie(Number(req.params.id));
+
+      if (deletedMovie) {
+        res.status(200).send({
+          message: "Movie removed successfully",
+          auditorium: deletedMovie,
+        });
+      } else {
+        res.status(404).send({ message: "Movie not found" });
+      }
+    } catch (error) {
+      res.status(500).send({ message: "Internal server error" });
+    }
+  });
+
+
+  /*--------------------------------------Ticket---------------------------------------------*/
+
+  app.get("/tickets", async (req: Request, res: Response) => {
+    const validation = listValidation.validate(req.query);
+  
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+  
+    const lisTicketReq = validation.value;
+    let limit = 20;
+    if (lisTicketReq.limit) {
+      limit = lisTicketReq.limit;
+    }
+    const page = lisTicketReq.page ?? 1;
+  
+    try {
+      const ticketUsecase = new TicketUsecase(AppDataSource);
+      const listTicket = await ticketUsecase.listTicket({
+        ...lisTicketReq,
+        page,
+        limit,
+      });
+      res.status(200).send(listTicket);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: "Internal server error" });
+    }
+  });
 };
 

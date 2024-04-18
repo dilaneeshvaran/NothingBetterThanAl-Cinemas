@@ -15,24 +15,24 @@ export const movieValidation = Joi.object<MovieValidation>({
   duration: Joi.number().required(),
 });
 
-export interface DeleteScheduleValidation {
+export interface DeleteMovieValidation {
   id: number;
 }
 
-export const deleteScheduleValidation = Joi.object<DeleteScheduleValidation>({
+export const deleteMovieValidation = Joi.object<DeleteMovieValidation>({
   id: Joi.number().required(),
 });
 
-export interface UpdateScheduleValidation {
+export interface UpdateMovieValidation {
   id:number;
-  date: Date;
-  movieId: number;
-  auditoriumId:number
+  description?: string;
+  imageUrl?: string;
+  duration?:number
 }
 
-export const updateScheduleValidation = Joi.object<UpdateScheduleValidation>({
+export const updateMovieValidation = Joi.object<UpdateMovieValidation>({
   id:Joi.number().required(),
-  date: Joi.date().required(),
-  movieId: Joi.number().required(),
-  auditoriumId: Joi.number().required(),
+  description: Joi.string().optional(),
+  imageUrl: Joi.string().optional().uri(),
+  duration: Joi.number().optional(),
 });
