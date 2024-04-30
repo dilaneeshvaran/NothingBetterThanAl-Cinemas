@@ -6,44 +6,77 @@ export interface ListMovie {
     page: number;
   }
 
-  export interface UpdateScheduleParams {
+  export interface UpdateMovieParams {
     id:number;
-    date: Date;
-    movieId: number;
-    auditoriumId:number
+    description?: string;
+    imageUrl?: string;
+    duration?:number
   }
 
 export class MovieUsecase {
     constructor(private readonly db: DataSource) {}
 
-    /*async listSchedule(
-        listSchedule: ListSchedule
-      ): Promise<{ schedules: Schedule[]; totalCount: number }> {
-        const query = this.db.createQueryBuilder(Schedule, "schedules");
+    async listMovie(
+        listMovie: ListMovie
+      ): Promise<{ movies: Movie[]; totalCount: number }> {
+        const query = this.db.createQueryBuilder(Movie, "movies");
         
-        query.skip((listSchedule.page - 1) * listSchedule.limit);
-        query.take(listSchedule.limit);
+        query.skip((listMovie.page - 1) * listMovie.limit);
+        query.take(listMovie.limit);
     
-        const [schedules, totalCount] = await query.getManyAndCount();
+        const [movies, totalCount] = await query.getManyAndCount();
         return {
-            schedules,
+            movies,
           totalCount,
         };
       }
-
-      async getScheduleById(scheduleId: number): Promise<Schedule> {
-        const query = this.db.createQueryBuilder(Schedule, "schedules");
+      async getMovieById(movieId: number): Promise<Movie> {
+        const query = this.db.createQueryBuilder(Movie, "movies");
       
-        query.where("schedules.id = :id", { id: scheduleId });
+        query.where("movies.id = :id", { id: movieId });
       
-        const schedule = await query.getOne();
+        const movie = await query.getOne();
       
-        if (!schedule) {
-          throw new Error('Schedule not found');
+        if (!movie) {
+          throw new Error('Movie not found');
         }
       
-        return schedule;
+        return movie;
       }
+
+      async updateMovie(
+        id: number,
+        { description,imageUrl, duration }: UpdateMovieParams
+      ): Promise<Movie | null> {
+        const repo = this.db.getRepository(Movie);
+        const movieFound = await repo.findOneBy({ id });
+        if (movieFound === null) return null;
+      
+        if (description) {
+          movieFound.description = description;
+        }        
+        if (imageUrl) {
+          movieFound.imageUrl = imageUrl;
+        }
+
+        if (duration) {
+          movieFound.duration = duration;
+        }
+
+        const movieUpdate = await repo.save(movieFound);
+        return movieUpdate;
+      }
+
+      async deleteMovie(id: number): Promise<Movie | null> {
+        const repo = this.db.getRepository(Movie);
+        const movieFound = await repo.findOneBy({ id });
+      
+        if (!movieFound) return null;
+      
+        await repo.remove(movieFound);
+        return movieFound;
+      }
+/*
 
       async getScheduleBetween(startDate: string, endDate: string): Promise<Schedule[]> {
         const query = this.db.createQueryBuilder(Schedule, "schedules");
@@ -59,31 +92,7 @@ export class MovieUsecase {
         return schedules;
     }
 
-async updateSchedule(
-  id: number,
-  { date,movieId, auditoriumId }: UpdateScheduleParams
-): Promise<Schedule | null> {
-  const repo = this.db.getRepository(Schedule);
-  const scheduleFound = await repo.findOneBy({ id });
-  if (scheduleFound === null) return null;
 
-  if (date) {
-    scheduleFound.date = date;
-  }
-    scheduleFound.duration+=30;
-  
-  if (movieId) {
-    scheduleFound.movieId = movieId;
-  }
-  if (auditoriumId) {
-    scheduleFound.auditoriumId = auditoriumId;
-  }
-  if (await this.doesOverlap(scheduleFound)) {
-    throw new Error("Overlapping schedules are not allowed");
-  }
-  const scheduleUpdate = await repo.save(scheduleFound);
-  return scheduleUpdate;
-}
 
 async doesOverlap(schedule: Schedule): Promise<boolean> {
     const repo = this.db.getRepository(Schedule);
@@ -110,13 +119,5 @@ async doesOverlap(schedule: Schedule): Promise<boolean> {
     return overlappingSchedules.length > 0;
   }
 
-async deleteSchedule(id: number): Promise<Schedule | null> {
-    const repo = this.db.getRepository(Schedule);
-    const scheduleFound = await repo.findOneBy({ id });
-  
-    if (!scheduleFound) return null;
-  
-    await repo.remove(scheduleFound);
-    return scheduleFound;
-  }*/
+*/
 }

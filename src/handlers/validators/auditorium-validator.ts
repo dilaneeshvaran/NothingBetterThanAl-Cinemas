@@ -22,12 +22,12 @@ export const auditoriumValidation = Joi.object<AuditoriumValidation>({
   maintenance: Joi.boolean().optional()
 });
 
-export interface ListAuditoriumValidation {
+export interface ListValidation {
   page?: number;
   limit?: number;
 }
 
-export const listAuditoriumValidation = Joi.object<ListAuditoriumValidation>({
+export const listValidation = Joi.object<ListValidation>({
   page: Joi.number().min(1).optional(),
   limit: Joi.number().min(1).optional(),
 });

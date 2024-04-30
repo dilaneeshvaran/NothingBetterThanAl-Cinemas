@@ -15,17 +15,6 @@ export const scheduleValidation = Joi.object<ScheduleValidation>({
   duration:Joi.number().optional()
 });
 
-
-export interface ListScheduleValidation {
-  page?: number;
-  limit?: number;
-}
-
-export const listScheduleValidation = Joi.object<ListScheduleValidation>({
-  page: Joi.number().min(1).optional(),
-  limit: Joi.number().min(1).optional(),
-});
-
 export interface DeleteScheduleValidation {
   id: number;
 }
