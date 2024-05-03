@@ -36,3 +36,13 @@ export const updateMovieValidation = Joi.object<UpdateMovieValidation>({
   imageUrl: Joi.string().optional().uri(),
   duration: Joi.number().optional(),
 });
+
+export interface ListValidation {
+  page?: number;
+  limit?: number;
+}
+
+export const listValidation = Joi.object<ListValidation>({
+  page: Joi.number().min(1).optional(),
+  limit: Joi.number().min(1).optional(),
+});

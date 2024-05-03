@@ -8,7 +8,7 @@ export interface TicketValidation {
 }
 
 export const ticketValidation = Joi.object<TicketValidation>({
-  price: Joi.string().required(),
+  price: Joi.number().required(),
   movieId:Joi.number().required(),
   scheduleId: Joi.number().required()
 });
@@ -33,4 +33,14 @@ export const updateTicketValidation = Joi.object<UpdateTicketValidation>({
   price: Joi.number().optional(),
   movieId: Joi.number().optional(),
   scheduleId: Joi.number().optional(),
+});
+
+export interface ListValidation {
+  page?: number;
+  limit?: number;
+}
+
+export const listValidation = Joi.object<ListValidation>({
+  page: Joi.number().min(1).optional(),
+  limit: Joi.number().min(1).optional(),
 });

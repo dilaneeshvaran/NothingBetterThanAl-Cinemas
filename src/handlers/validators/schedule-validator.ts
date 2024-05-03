@@ -36,3 +36,13 @@ export const updateScheduleValidation = Joi.object<UpdateScheduleValidation>({
   movieId: Joi.number().required(),
   auditoriumId: Joi.number().required(),
 });
+
+export interface ListValidation {
+  page?: number;
+  limit?: number;
+}
+
+export const listValidation = Joi.object<ListValidation>({
+  page: Joi.number().min(1).optional(),
+  limit: Joi.number().min(1).optional(),
+});

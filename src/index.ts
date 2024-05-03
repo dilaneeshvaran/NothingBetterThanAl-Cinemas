@@ -1,5 +1,8 @@
 import express from "express";
-import { initRoutes } from "./handlers/routes";
+import { initAuditoriumRoutes} from "./handlers/routes/auditorium-routes";
+import { initTicketRoutes } from "./handlers/routes/ticket-routes";
+import { initScheduleRoutes } from "./handlers/routes/schedule-routes";
+import { initMovieRoutes } from "./handlers/routes/movie-routes";
 import { AppDataSource } from "./database/database";
 
 const main = async () => {
@@ -16,7 +19,10 @@ const main = async () => {
   }
 
   app.use(express.json());
-  initRoutes(app);
+  initAuditoriumRoutes(app);
+  initTicketRoutes(app);
+  initScheduleRoutes(app);
+  initMovieRoutes(app);
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
