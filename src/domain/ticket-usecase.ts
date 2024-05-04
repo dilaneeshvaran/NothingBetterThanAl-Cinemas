@@ -56,9 +56,6 @@ export class TicketUsecase {
         if (price) {
           ticketFound.price = price;
         }        
-        if (movieId) {
-          ticketFound.movieId = movieId;
-        }
         if (scheduleId) {
           ticketFound.scheduleId = scheduleId;
         }

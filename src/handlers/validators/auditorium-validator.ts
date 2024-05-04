@@ -17,7 +17,7 @@ export const auditoriumValidation = Joi.object<AuditoriumValidation>({
   description: Joi.string().required(),
   imageUrl: Joi.string().optional().uri(),
   type: Joi.string().required(),
-  capacity: Joi.number().required().min(1),
+  capacity: Joi.number().required().min(15).max(30),
   handicapAccessible: Joi.boolean().optional(),
   maintenance: Joi.boolean().optional()
 });

@@ -5,22 +5,17 @@ export class Ticket {
     @PrimaryGeneratedColumn()
     id!: number;
   
-    @Column()
-    price:number;
+    @Column({ default: 15 })
+    price: number;
 
     @Column()
-    movieId:number;
+    scheduleId: number;
 
-    @Column()
-    scheduleId:number;
-
-  constructor(
-    price:number,
-    movieId:number,
-    scheduleId:number
-  ) {
-    this.price=price;
-    this.movieId=movieId;
-    this.scheduleId=scheduleId;
-  }
+    constructor(
+        price: number = 15,
+        scheduleId: number
+    ) {
+        this.price = price;
+        this.scheduleId = scheduleId;
+    }
 }

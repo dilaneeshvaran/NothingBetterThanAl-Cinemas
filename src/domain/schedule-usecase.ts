@@ -1,4 +1,4 @@
-import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { Between, DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie";
 
@@ -104,13 +104,7 @@ if (movie) {
       where: [
         {
           movieId: schedule.movieId,
-          auditoriumId: schedule.auditoriumId,
-          date: LessThanOrEqual(endTime),
-        },
-        {
-          movieId: schedule.movieId,
-          auditoriumId: schedule.auditoriumId,
-          date: MoreThanOrEqual(schedule.date),
+          date: Between(schedule.date, endTime)
         }
       ]
     });
@@ -127,4 +121,11 @@ async deleteSchedule(id: number): Promise<Schedule | null> {
     await repo.remove(scheduleFound);
     return scheduleFound;
   }
+
+  async getSchedulesByMovieId(movieId: number): Promise<Schedule[]> {
+    const repo = this.db.getRepository(Schedule);
+    const schedules = await repo.find({ where: { movieId } });
+    return schedules;
+}
+
 }

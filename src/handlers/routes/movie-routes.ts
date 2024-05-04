@@ -10,6 +10,7 @@ import { generateValidationErrorMessage } from "../validators/generate-validatio
 import { AppDataSource } from "../../database/database";
 import { Movie } from "../../database/entities/movie";
 import { MovieUsecase } from "../../domain/movie-usecase";
+import { ScheduleUsecase } from "../../domain/schedule-usecase";
 
 export const initMovieRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -52,10 +53,12 @@ app.get("/movies/:movieId", async (req: Request, res: Response) => {
 
   try {
     const movieUsecase = new MovieUsecase(AppDataSource);
+    const scheduleUsecase = new ScheduleUsecase(AppDataSource);
     const movie = await movieUsecase.getMovieById(Number(movieId));
+    const schedules = await scheduleUsecase.getSchedulesByMovieId(Number(movieId));
 
     if (movie) {
-      res.status(200).send(movie);
+      res.status(200).send({ movie, schedules });
     } else {
       res.status(404).send({ error: "Movie not found" });
     }
