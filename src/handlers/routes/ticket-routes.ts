@@ -9,7 +9,7 @@ deleteScheduleValidation,listValidation
 import {ticketValidation,updateTicketValidation,deleteTicketValidation} from "../validators/ticket-validator"
 import { generateValidationErrorMessage } from "../validators/generate-validation-message";
 import { AppDataSource } from "../../database/database";
-import { Ticket } from "../../database/entities/ticket";
+import { Ticket, TicketType } from "../../database/entities/ticket";
 import { TicketUsecase } from "../../domain/ticket-usecase";
 
 export const initTicketRoutes = (app: express.Express) => {
@@ -77,17 +77,24 @@ export const initTicketRoutes = (app: express.Express) => {
       return;
     }
   
-    const ticketRequest = validation.value;
-    const ticketRepo = AppDataSource.getRepository(Ticket);
-    
+    let ticketRequest = validation.value;
+  
+    // Instantiate the TicketUsecase
+    const ticketUsecase = new TicketUsecase(AppDataSource);
+  
     try {
-      const ticketCreated = await ticketRepo.save(ticketRequest);
+      const ticketCreated = await ticketUsecase.createTicket(ticketRequest);
       res.status(201).send(ticketCreated);
     } catch (error) {
-      res.status(500).send({ error: "Internal error" });
+      if ((error as Error).message === 'scheduleId is required for normal tickets') {
+        res.status(400).send({ error: (error as Error).message });
+      } else {
+        res.status(500).send({ error: "Internal error" });
+      }
     }
   });
 
+  
   app.patch("/tickets/:id", async (req: Request, res: Response) => {
     const validation = updateTicketValidation.validate({
       ...req.params,
