@@ -1,24 +1,13 @@
 import Joi from "joi";
 
-export enum TicketType {
-  NORMAL = 'normal',
-  SUPER = 'super'
-}
-
 export interface TicketValidation {
   price?: number;
-  scheduleId?: number;
-  type: TicketType;
-  remainingUses?: number;
-  usedSchedules?: number[];
+  scheduleId: number;
 }
 
 export const ticketValidation = Joi.object<TicketValidation>({
   price: Joi.number().optional(),
-  type: Joi.string().valid(TicketType.NORMAL, TicketType.SUPER).required(),
-  scheduleId: Joi.number().optional(),
-  remainingUses: Joi.number().optional(),
-  usedSchedules: Joi.array().items(Joi.number()).optional(),
+  scheduleId: Joi.number().required()
 });
 
 export interface DeleteTicketValidation {
