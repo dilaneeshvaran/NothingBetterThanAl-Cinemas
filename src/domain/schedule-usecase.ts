@@ -1,6 +1,7 @@
 import { Between, DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie";
+import { Ticket } from "../database/entities/ticket";
 
 
 export interface ListSchedule {
@@ -47,19 +48,27 @@ export class ScheduleUsecase {
         return schedule;
       }
 
-      async getScheduleBetween(startDate: string, endDate: string): Promise<Schedule[]> {
+    async getScheduleBetween(startDate: string, endDate: string): 
+      Promise<{ schedule: Schedule; ticketsSold: number }[]> {
         const query = this.db.createQueryBuilder(Schedule, "schedules");
-    
+        const ticketRepo = this.db.getRepository(Ticket);
+      
         query.where("schedules.date >= :startDate AND schedules.date <= :endDate", { startDate, endDate });
-    
+      
         const schedules = await query.getMany();
-    
+      
         if (!schedules || schedules.length === 0) {
-            throw new Error('No schedules found between the specified dates');
+          throw new Error('No schedules found between the specified dates');
         }
-    
-        return schedules;
-    }
+      
+        return Promise.all(schedules.map(async (schedule) => {
+          const tickets = await ticketRepo.find({ where: { scheduleId: schedule.id } });
+          return {
+            schedule,
+            ticketsSold: tickets.length
+          };
+        }));
+      }
 
 async updateSchedule(
   id: number,
@@ -122,10 +131,13 @@ async deleteSchedule(id: number): Promise<Schedule | null> {
     return scheduleFound;
   }
 
-  async getSchedulesByMovieId(movieId: number): Promise<Schedule[]> {
+  async getSchedulesByMovieId(movieId: number): Promise<number[]> {
     const repo = this.db.getRepository(Schedule);
-    const schedules = await repo.find({ where: { movieId } });
-    return schedules;
+    const schedules = await repo.find({ 
+        select: ["id"], 
+        where: { movieId } 
+    });
+    return schedules.map(schedule => schedule.id);
 }
 
 }

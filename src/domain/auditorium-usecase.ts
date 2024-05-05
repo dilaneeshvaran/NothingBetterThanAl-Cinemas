@@ -120,8 +120,7 @@ Promise<{ schedule: Schedule; ticketsSold: number }[]> {
     where: {
       auditoriumId: auditoriumId,
       date: Between(startDate, endDate)
-    },
-    relations: ["movie"]
+    }
   });
 
   return Promise.all(schedules.map(async (schedule) => {

@@ -154,7 +154,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 
-  app.get("/auditoriums/:auditoriumId/schedule/:startDate", async (req: Request, res: Response) => {
+  app.get("/auditoriums/:auditoriumId/schedules/:startDate", async (req: Request, res: Response) => {
     const validation = listAuditoriumScheduleValidation.validate(req.params);
   
     
@@ -176,23 +176,22 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
 
     try {
-    const auditoriumUsecase = new AuditoriumUsecase(AppDataSource);
-    const schedule = await auditoriumUsecase.getAuditoriumSchedule(Number(auditoriumId), startDate);
-  
-    //maybe try res.status(200).json({ schedule });
-    if (schedule) {
-      res.status(200).send({
-        message: "Schedule available : ",
-        schedule: schedule,
-      });
-    } else {
-      res.status(404).send({ message: "schedule not available" });
+      const auditoriumUsecase = new AuditoriumUsecase(AppDataSource);
+      const scheduleIds = await auditoriumUsecase.getAuditoriumSchedule(Number(auditoriumId), startDate);
+    
+      if (scheduleIds.length > 0) {
+        res.status(200).send({
+          message: "Schedule available : ",
+          scheduleIds: scheduleIds,
+        });
+      } else {
+        res.status(404).send({ message: "schedule not available" });
+      }
+    } catch (error) {
+      console.log(error);
+      console.error('Error:', (error as Error).message);
+      res.status(500).send({ error: "Internal server error" });
     }
-  } catch (error) {
-    console.log(error);
-    console.error('Error:', (error as Error).message);
-    res.status(500).send({ error: "Internal server error" });
-  }
   });
 
 };

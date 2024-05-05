@@ -1,5 +1,7 @@
 import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Movie } from "../database/entities/movie";
+import { Schedule } from "../database/entities/schedule";
+import { Ticket } from "../database/entities/ticket";
 
 export interface ListMovie {
     limit: number;
@@ -76,48 +78,27 @@ export class MovieUsecase {
         await repo.remove(movieFound);
         return movieFound;
       }
-/*
 
-      async getScheduleBetween(startDate: string, endDate: string): Promise<Schedule[]> {
+      async getMovieScheduleBetween(movieId: number, startDate: string, endDate: string): 
+      Promise<{ schedule: Schedule; ticketsSold: number }[]> {
         const query = this.db.createQueryBuilder(Schedule, "schedules");
-    
-        query.where("schedules.date >= :startDate AND schedules.date <= :endDate", { startDate, endDate });
-    
+        const ticketRepo = this.db.getRepository(Ticket);
+      
+        query.where("schedules.movieId = :movieId AND schedules.date >= :startDate AND schedules.date <= :endDate", { movieId, startDate, endDate });
+      
         const schedules = await query.getMany();
-    
+      
         if (!schedules || schedules.length === 0) {
-            throw new Error('No schedules found between the specified dates');
+          throw new Error('No schedules found for the specified movie between the specified dates');
         }
-    
-        return schedules;
-    }
+      
+        return Promise.all(schedules.map(async (schedule) => {
+          const tickets = await ticketRepo.find({ where: { scheduleId: schedule.id } });
+          return {
+            schedule,
+            ticketsSold: tickets.length
+          };
+        }));
+      }
 
-
-
-async doesOverlap(schedule: Schedule): Promise<boolean> {
-    const repo = this.db.getRepository(Schedule);
-
-    // calculate end time, duration here is in minutes
-    const endTime = new Date(schedule.date.getTime() + schedule.duration * 60000);
-  
-    // check for overlap
-    const overlappingSchedules = await repo.find({
-      where: [
-        {
-          movieId: schedule.movieId,
-          auditoriumId: schedule.auditoriumId,
-          date: LessThanOrEqual(endTime),
-        },
-        {
-          movieId: schedule.movieId,
-          auditoriumId: schedule.auditoriumId,
-          date: MoreThanOrEqual(schedule.date),
-        }
-      ]
-    });
-  
-    return overlappingSchedules.length > 0;
-  }
-
-*/
 }

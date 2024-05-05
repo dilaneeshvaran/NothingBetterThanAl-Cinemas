@@ -55,7 +55,26 @@ app.get("/movies/:movieId", async (req: Request, res: Response) => {
     const movieUsecase = new MovieUsecase(AppDataSource);
     const scheduleUsecase = new ScheduleUsecase(AppDataSource);
     const movie = await movieUsecase.getMovieById(Number(movieId));
-    const schedules = await scheduleUsecase.getSchedulesByMovieId(Number(movieId));
+    const scheduleIds = await scheduleUsecase.getSchedulesByMovieId(Number(movieId));
+
+    if (movie) {
+      res.status(200).send({ movie, scheduleIds });
+    } else {
+      res.status(404).send({ error: "Movie not found" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+});
+
+app.get("/movies/:movieId/schedules/:startDate/:endDate", async (req: Request, res: Response) => {
+  const { movieId, startDate, endDate } = req.params;
+
+  try {
+    const movieUsecase = new MovieUsecase(AppDataSource);
+    const movie = await movieUsecase.getMovieById(Number(movieId));
+    const schedules = await movieUsecase.getMovieScheduleBetween(Number(movieId), startDate, endDate);
 
     if (movie) {
       res.status(200).send({ movie, schedules });
