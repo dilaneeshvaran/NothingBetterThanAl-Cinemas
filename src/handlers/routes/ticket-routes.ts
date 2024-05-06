@@ -66,7 +66,6 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-
   app.post("/tickets", async (req: Request, res: Response) => {
     const validation = ticketValidation.validate(req.body);
   
@@ -120,6 +119,32 @@ export const initTicketRoutes = (app: express.Express) => {
       res.status(500).send({ error: "Internal error" });
     }
   });
+
+  app.patch("/tickets/:id/validate", async (req: Request, res: Response) => {
+    const ticketId = Number(req.params.id);
+    const ticketUsecase = new TicketUsecase(AppDataSource);
+    const ticket = await ticketUsecase.getTicketById(ticketId);
+
+    if (!ticket) {
+        res.status(404).send({ isValidated: false });
+        return;
+    }
+
+    if (ticket.used) {
+        res.status(400).send({ isValidated: false });
+        return;
+    }
+
+    ticket.used = true;
+    const updatedTicket = await ticketUsecase.updateTicket(ticketId, ticket);
+
+    if (!updatedTicket) {
+        res.status(500).send({ isValidated: false });
+        return;
+    }
+
+    res.status(200).send({ isValidated: true });
+});
 
   app.delete("/tickets/:id", async (req: Request, res: Response) => {
     const validation = deleteTicketValidation.validate(req.params);

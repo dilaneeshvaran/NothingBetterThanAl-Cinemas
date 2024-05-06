@@ -9,8 +9,8 @@ export interface ListTicket {
   export interface UpdateTicketParams {
     id:number;
     price?: number;
-    movieId?: number;
-    scheduleId?:number
+    scheduleId?:number,
+    used?:boolean
   }
 
 export class TicketUsecase {
@@ -47,7 +47,7 @@ export class TicketUsecase {
 
       async updateTicket(
         id: number,
-        { price, scheduleId }: UpdateTicketParams
+        { price, scheduleId,used }: UpdateTicketParams
       ): Promise<Ticket | null> {
         const repo = this.db.getRepository(Ticket);
         const ticketFound = await repo.findOneBy({ id });
@@ -58,6 +58,10 @@ export class TicketUsecase {
         }        
         if (scheduleId) {
           ticketFound.scheduleId = scheduleId;
+        }
+
+        if (used) {
+          ticketFound.used = used;
         }
 
         const ticketUpdate = await repo.save(ticketFound);

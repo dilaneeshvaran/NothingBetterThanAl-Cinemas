@@ -120,6 +120,38 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
+  app.patch("/supertickets/:id/bookSchedule", async (req: Request, res: Response) => {
+    
+    const validation = updateSuperTicketValidation.validate(req.params);
+
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+
+    const updateSuperTicketReq = validation.value;
+    const scheduleId = req.body.scheduleId; 
+    try {
+      const superTicketUsecase = new SuperTicketUsecase(AppDataSource);
+      const updatedSuperTicket = await superTicketUsecase.bookSchedule(updateSuperTicketReq.id, scheduleId);
+
+      res.status(200).send(updatedSuperTicket);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: "Internal error" });
+    }
+});
+
+app.get("/supertickets/:id/validate", async (req: Request, res: Response) => {
+  const superTicketId = Number(req.params.id);
+  const superTicketUsecase = new SuperTicketUsecase(AppDataSource);
+  const isValid = await superTicketUsecase.validateSuperTicket(superTicketId);
+
+  res.status(200).send({ isValid });
+});
+
   app.delete("/supertickets/:id", async (req: Request, res: Response) => {
     const validation = deleteSuperTicketValidation.validate(req.params);
 

@@ -12,11 +12,11 @@ export class SuperTicket {
     usesRemaining: number;
 
     @Column("simple-array", { nullable: true })
-    usedSchedules: number[] | null;
+    usedSchedules: number[];
 
     constructor(
         price: number = 15,
-        usesRemaining: number,
+        usesRemaining: number = 10,
         usedSchedules: number[] = []
     ) {
         this.price = price;

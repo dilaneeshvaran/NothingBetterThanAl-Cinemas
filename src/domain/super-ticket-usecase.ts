@@ -1,5 +1,7 @@
 import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { SuperTicket } from "../database/entities/super-ticket";
+import { ScheduleUsecase } from "./schedule-usecase";
+import { AppDataSource } from "../database/database";
 
 export interface ListSuperTicketParams {
     limit: number;
@@ -9,6 +11,8 @@ export interface ListSuperTicketParams {
 export interface UpdateSuperTicketParams {
     id: number;
     price?: number;
+    usesRemaining?: number;
+    usedSchedules?: number[];
 }
 
 export class SuperTicketUsecase {
@@ -45,17 +49,85 @@ export class SuperTicketUsecase {
 
     async updateSuperTicket(
         id: number,
-        { price }: UpdateSuperTicketParams
+        { price, usesRemaining, usedSchedules }: UpdateSuperTicketParams
     ): Promise<SuperTicket | null> {
         const repo = this.db.getRepository(SuperTicket);
         const superTicketFound = await repo.findOne({ where: { id } });
         if (!superTicketFound) return null;
-      
+    
         if (price) {
-          superTicketFound.price = price;
-        }        
+            superTicketFound.price = price;
+        }
+        if (usesRemaining !== undefined) {
+            superTicketFound.usesRemaining = usesRemaining;
+        }
+        if (usedSchedules) {
+            superTicketFound.usedSchedules = usedSchedules;
+        }
+    
         const superTicketUpdate = await repo.save(superTicketFound);
         return superTicketUpdate;
+    }
+
+    async bookSchedule(superTicketId: number, scheduleId: number) {
+        const superTicket = await this.getSuperTicketById(superTicketId);
+    
+        if ((superTicket.usedSchedules?.length ?? 0) >= 10) {
+            throw new Error("Cannot book more than 10 schedules");
+        }
+    
+        if (superTicket.usesRemaining <= 0) {
+            throw new Error("No uses remaining");
+        }
+    
+        superTicket.usedSchedules = superTicket.usedSchedules?.map(Number) || [];
+        scheduleId = Number(scheduleId); // Ensure scheduleId is a number
+        if (superTicket.usedSchedules.includes(scheduleId)) {
+            throw new Error("Schedule already booked");
+        } else {
+            superTicket.usedSchedules.push(scheduleId);
+            superTicket.usesRemaining--;
+        }
+    
+        const updatedSuperTicket = await this.updateSuperTicket(superTicketId, {
+            id: superTicketId,
+            usesRemaining: superTicket.usesRemaining,
+            usedSchedules: superTicket.usedSchedules
+        });
+    
+        return updatedSuperTicket;
+    }
+
+    async validateSuperTicket(id: number): Promise<boolean> {
+        const repo = this.db.getRepository(SuperTicket);
+        const superTicket = await repo.findOne({ where: { id } });
+    
+        if (!superTicket || !superTicket.usedSchedules) {
+            return false;
+        }
+    
+        const scheduleUsecase = new ScheduleUsecase(AppDataSource);
+        const currentTime = new Date();
+        const currentTimeUTC = new Date(Date.UTC(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds()));
+    
+        console.log(`Current time (UTC): ${currentTimeUTC.toISOString()}`);
+    
+        for (const id of superTicket.usedSchedules) {
+            const schedule = await scheduleUsecase.getScheduleById(id);
+            if (!schedule) continue;
+    
+            const startTime = new Date(schedule.date);
+            const differenceInMinutes = Math.round((currentTimeUTC.getTime() - startTime.getTime()) / 60000);
+    
+            console.log(`Start time of schedule ${id}: ${startTime.toISOString()}`);
+            console.log(`Difference in minutes: ${differenceInMinutes}`);
+    
+            if (differenceInMinutes >= -15 && differenceInMinutes <= 15) {
+                return true;
+            }
+        }
+    
+        return false;
     }
     
     async deleteSuperTicket(id: number): Promise<SuperTicket | null> {
