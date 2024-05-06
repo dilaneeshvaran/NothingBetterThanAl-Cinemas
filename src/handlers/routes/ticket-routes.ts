@@ -120,7 +120,7 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.patch("/tickets/:id/validate", async (req: Request, res: Response) => {
+  app.get("/tickets/:id/validate", async (req: Request, res: Response) => {
     const ticketId = Number(req.params.id);
     const ticketUsecase = new TicketUsecase(AppDataSource);
     const ticket = await ticketUsecase.getTicketById(ticketId);
@@ -135,11 +135,9 @@ export const initTicketRoutes = (app: express.Express) => {
         return;
     }
 
-    ticket.used = true;
-    const updatedTicket = await ticketUsecase.updateTicket(ticketId, ticket);
-
-    if (!updatedTicket) {
-        res.status(500).send({ isValidated: false });
+    const isValid = await ticketUsecase.validateTicket(ticketId);
+    if (!isValid) {
+        res.status(400).send({ isValidated: false });
         return;
     }
 

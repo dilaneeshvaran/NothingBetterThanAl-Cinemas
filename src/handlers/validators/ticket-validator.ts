@@ -3,11 +3,13 @@ import Joi from "joi";
 export interface TicketValidation {
   price?: number;
   scheduleId: number;
+  used?: boolean;
 }
 
 export const ticketValidation = Joi.object<TicketValidation>({
   price: Joi.number().optional(),
-  scheduleId: Joi.number().required()
+  scheduleId: Joi.number().required(),
+  used: Joi.boolean().optional()
 });
 
 export interface DeleteTicketValidation {
@@ -21,11 +23,13 @@ export const deleteTicketValidation = Joi.object<DeleteTicketValidation>({
 export interface UpdateTicketValidation {
   id:number;
   scheduleId?:number
+  used?: boolean;
 }
 
 export const updateTicketValidation = Joi.object<UpdateTicketValidation>({
   id:Joi.number().required(),
   scheduleId: Joi.number().optional(),
+  used: Joi.boolean().optional()
 });
 
 export interface ListValidation {

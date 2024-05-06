@@ -1,5 +1,7 @@
 import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Ticket } from "../database/entities/ticket";
+import { ScheduleUsecase } from "./schedule-usecase";
+import { AppDataSource } from "../database/database";
 
 export interface ListTicket {
     limit: number;
@@ -67,6 +69,36 @@ export class TicketUsecase {
         const ticketUpdate = await repo.save(ticketFound);
         return ticketUpdate;
       }
+
+      async validateTicket(id: number): Promise<boolean> {
+        const repo = this.db.getRepository(Ticket);
+        const ticket = await repo.findOne({ where: { id } });
+    
+        if (!ticket || !ticket.scheduleId) {
+            return false;
+        }
+    
+        const scheduleUsecase = new ScheduleUsecase(AppDataSource);
+        const currentTime = new Date();
+        const currentTimeUTC = new Date(Date.UTC(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), currentTime.getHours(), currentTime.getMinutes(), currentTime.getSeconds()));
+    
+        console.log(`Current time (UTC): ${currentTimeUTC.toISOString()}`);
+    
+        const schedule = await scheduleUsecase.getScheduleById(ticket.scheduleId);
+        if (!schedule) return false;
+    
+        const startTime = new Date(schedule.date);
+        const differenceInMinutes = Math.round((currentTimeUTC.getTime() - startTime.getTime()) / 60000);
+    
+        console.log(`Start time of schedule ${ticket.scheduleId}: ${startTime.toISOString()}`);
+        console.log(`Difference in minutes: ${differenceInMinutes}`);
+    
+        if (differenceInMinutes >= -15 && differenceInMinutes <= 15) {
+            return true;
+        }
+    
+        return false;
+    }
 
 async deleteTicket(id: number): Promise<Ticket | null> {
     const repo = this.db.getRepository(Ticket);

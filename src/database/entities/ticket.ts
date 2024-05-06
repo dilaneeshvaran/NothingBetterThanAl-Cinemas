@@ -10,9 +10,9 @@ export class Ticket {
 
     @Column()
     scheduleId: number;
-
-    @Column()
-    used: boolean = false;
+    
+    @Column({ default: false })
+used!: boolean;
 
     constructor(
         price: number = 15,
