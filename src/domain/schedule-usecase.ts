@@ -119,6 +119,15 @@ async doesOverlap(schedule: Schedule): Promise<boolean> {
   return overlappingSchedules.length > 0;
 }
 
+isCorrectDate(schedule: Schedule): boolean {
+  const now = new Date();
+  // remove time part from the date
+  now.setHours(0, 0, 0, 0);
+  const scheduleDate = new Date(schedule.date);
+  scheduleDate.setHours(0, 0, 0, 0);
+  return scheduleDate >= now;
+}
+
 async deleteSchedule(id: number): Promise<Schedule | null> {
     const repo = this.db.getRepository(Schedule);
     const scheduleFound = await repo.findOneBy({ id });

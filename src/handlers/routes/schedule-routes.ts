@@ -103,26 +103,33 @@ app.post("/schedules", async (req: Request, res: Response) => {
   const movieRepo = AppDataSource.getRepository(Movie);
   const auditoriumRepo = AppDataSource.getRepository(Auditorium);
 
-// Check if movie exists
-const movie = await movieRepo.findOne({ where: { id: scheduleRequest.movieId } });
-if (!movie) {
-  res.status(400).send({ error: "Movie does not exist" });
-  return;
-}
+  // Check if movie exists
+  const movie = await movieRepo.findOne({ where: { id: scheduleRequest.movieId } });
+  if (!movie) {
+    res.status(400).send({ error: "Movie does not exist" });
+    return;
+  }
 
-// Check if auditorium exists
-const auditorium = await auditoriumRepo.findOne({ where: { id: scheduleRequest.auditoriumId } });
-if (!auditorium) {
-  res.status(400).send({ error: "Auditorium does not exist" });
-  return;
-}
+  // Check if auditorium exists
+  const auditorium = await auditoriumRepo.findOne({ where: { id: scheduleRequest.auditoriumId } });
+  if (!auditorium) {
+    res.status(400).send({ error: "Auditorium does not exist" });
+    return;
+  }
 
   const scheduleUsecase = new ScheduleUsecase(AppDataSource);
+
+  // Check if schedule date is not in the past
+  if (!scheduleUsecase.isCorrectDate(scheduleRequest as Schedule)) {
+    res.status(400).send({ error: "Schedule date cannot be in the past" });
+    return;
+  }
 
   if (await scheduleUsecase.doesOverlap(scheduleRequest as Schedule)) {
     res.status(400).send({ error: "Overlapping schedules are not allowed" });
     return;
   }
+
   try {
     const scheduleCreated = await scheduleRepo.save(scheduleRequest);
     res.status(201).send(scheduleCreated);
