@@ -1,10 +1,6 @@
 import express, { Request, Response } from "express";
-import moment from 'moment';
 
-import {
-  scheduleValidation,
-updateScheduleValidation,
-deleteScheduleValidation,listValidation
+import {listValidation
 } from "../validators/schedule-validator";
 import {ticketValidation,updateTicketValidation,deleteTicketValidation} from "../validators/ticket-validator"
 import { generateValidationErrorMessage } from "../validators/generate-validation-message";
@@ -13,6 +9,7 @@ import { Ticket } from "../../database/entities/ticket";
 import { TicketUsecase } from "../../domain/ticket-usecase";
 import { Schedule } from "../../database/entities/schedule";
 import { Auditorium } from "../../database/entities/auditorium";
+import { ScheduleUsecase } from "../../domain/schedule-usecase";
 
 export const initTicketRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -82,6 +79,7 @@ export const initTicketRoutes = (app: express.Express) => {
     const ticketRepo = AppDataSource.getRepository(Ticket);
     const scheduleRepo = AppDataSource.getRepository(Schedule);
     const auditoriumRepo = AppDataSource.getRepository(Auditorium);
+    const scheduleUsecase = new ScheduleUsecase(AppDataSource);
   
     // Check if schedule exists
     const schedule = await scheduleRepo.findOne({ where: { id: ticketRequest.scheduleId } });
@@ -97,8 +95,8 @@ export const initTicketRoutes = (app: express.Express) => {
       return;
     }
   
-    const ticketsForSchedule = await ticketRepo.find({ where: { scheduleId: schedule.id } });
-    if (ticketsForSchedule.length >= auditorium.capacity) {
+    const ticketsSold = await scheduleUsecase.getTicketsSold(schedule.id);
+    if (ticketsSold >= auditorium.capacity) {
       res.status(400).send({ error: "Auditorium capacity has been reached" });
       return;
     }

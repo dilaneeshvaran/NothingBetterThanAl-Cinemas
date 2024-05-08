@@ -1,12 +1,10 @@
 import express, { Request, Response } from "express";
-import moment from 'moment';
 
 import {
   scheduleValidation,
 updateScheduleValidation,
 deleteScheduleValidation,listValidation
 } from "../validators/schedule-validator";
-import {ticketValidation,updateTicketValidation,deleteTicketValidation} from "../validators/ticket-validator"
 import { generateValidationErrorMessage } from "../validators/generate-validation-message";
 import { AppDataSource } from "../../database/database";
 import { Schedule } from "../../database/entities/schedule";

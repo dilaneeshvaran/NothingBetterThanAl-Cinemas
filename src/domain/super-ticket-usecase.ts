@@ -71,32 +71,40 @@ export class SuperTicketUsecase {
 
     async bookSchedule(superTicketId: number, scheduleId: number) {
         const superTicket = await this.getSuperTicketById(superTicketId);
-    
+      
         if ((superTicket.usedSchedules?.length ?? 0) >= 10) {
-            throw new Error("Cannot book more than 10 schedules");
+          throw new Error("Cannot book more than 10 schedules");
         }
-    
+      
         if (superTicket.usesRemaining <= 0) {
-            throw new Error("No uses remaining");
+          throw new Error("No uses remaining");
         }
-    
+      
         superTicket.usedSchedules = superTicket.usedSchedules?.map(Number) || [];
         scheduleId = Number(scheduleId); // Ensure scheduleId is a number
         if (superTicket.usedSchedules.includes(scheduleId)) {
-            throw new Error("Schedule already booked");
-        } else {
-            superTicket.usedSchedules.push(scheduleId);
-            superTicket.usesRemaining--;
+          throw new Error("Schedule already booked");
         }
-    
+      
+        // Check if schedule capacity is respected
+        const scheduleUsecase = new ScheduleUsecase(AppDataSource);
+        const schedule = await scheduleUsecase.getScheduleById(scheduleId);
+        const ticketsSold = await scheduleUsecase.getTicketsSold(scheduleId);
+        if (ticketsSold >= schedule.auditoriumCapacity) {
+          throw new Error("Schedule is fully booked");
+        }
+      
+        superTicket.usedSchedules.push(scheduleId);
+        superTicket.usesRemaining--;
+      
         const updatedSuperTicket = await this.updateSuperTicket(superTicketId, {
-            id: superTicketId,
-            usesRemaining: superTicket.usesRemaining,
-            usedSchedules: superTicket.usedSchedules
+          id: superTicketId,
+          usesRemaining: superTicket.usesRemaining,
+          usedSchedules: superTicket.usedSchedules
         });
-    
+      
         return updatedSuperTicket;
-    }
+      }
 
     async validateSuperTicket(id: number): Promise<boolean> {
         const repo = this.db.getRepository(SuperTicket);

@@ -3,6 +3,7 @@ import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie";
 import { Ticket } from "../database/entities/ticket";
 import { Auditorium } from "../database/entities/auditorium";
+import { SuperTicket } from "../database/entities/super-ticket";
 
 
 export interface ListSchedule {
@@ -54,16 +55,25 @@ export class ScheduleUsecase {
           throw new Error('Auditorium not found');
         }
       
-        const ticketQuery = this.db.createQueryBuilder(Ticket, "tickets");
-        ticketQuery.where("tickets.scheduleId = :id", { id: scheduleId });
-      
-        const ticketsSold = await ticketQuery.getCount();
+        const ticketsSold = await this.getTicketsSold(scheduleId);
       
         return {
           ...schedule,
           auditoriumCapacity: auditorium.capacity,
           ticketsSold: ticketsSold
         };
+      }
+
+      async getTicketsSold(scheduleId: number): Promise<number> {
+        const ticketQuery = this.db.createQueryBuilder(Ticket, "tickets");
+        ticketQuery.where("tickets.scheduleId = :id", { id: scheduleId });
+      
+        const superTicketQuery = this.db.createQueryBuilder(SuperTicket, "supertickets");
+        superTicketQuery.where("FIND_IN_SET(:id, `supertickets`.`usedSchedules`)", { id: scheduleId });
+      
+        const ticketsSold = await ticketQuery.getCount() + await superTicketQuery.getCount();
+      
+        return ticketsSold;
       }
 
     async getScheduleBetween(startDate: string, endDate: string): 
