@@ -12,6 +12,7 @@ import { AppDataSource } from "../../database/database";
 import { Ticket } from "../../database/entities/ticket";
 import { TicketUsecase } from "../../domain/ticket-usecase";
 import { Schedule } from "../../database/entities/schedule";
+import { Auditorium } from "../../database/entities/auditorium";
 
 export const initTicketRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -80,11 +81,25 @@ export const initTicketRoutes = (app: express.Express) => {
     const ticketRequest = validation.value;
     const ticketRepo = AppDataSource.getRepository(Ticket);
     const scheduleRepo = AppDataSource.getRepository(Schedule);
+    const auditoriumRepo = AppDataSource.getRepository(Auditorium);
   
     // Check if schedule exists
     const schedule = await scheduleRepo.findOne({ where: { id: ticketRequest.scheduleId } });
     if (!schedule) {
       res.status(400).send({ error: "Schedule does not exist" });
+      return;
+    }
+  
+    // Check if auditorium exists and its capacity is respected
+    const auditorium = await auditoriumRepo.findOne({ where: { id: schedule.auditoriumId } });
+    if (!auditorium) {
+      res.status(400).send({ error: "Auditorium does not exist" });
+      return;
+    }
+  
+    const ticketsForSchedule = await ticketRepo.find({ where: { scheduleId: schedule.id } });
+    if (ticketsForSchedule.length >= auditorium.capacity) {
+      res.status(400).send({ error: "Auditorium capacity has been reached" });
       return;
     }
   

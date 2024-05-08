@@ -31,10 +31,10 @@ export interface UpdateScheduleValidation {
 }
 
 export const updateScheduleValidation = Joi.object<UpdateScheduleValidation>({
-  id:Joi.number().required(),
-  date: Joi.date().required(),
-  movieId: Joi.number().required(),
-  auditoriumId: Joi.number().required(),
+  id:Joi.number().optional(),
+  date: Joi.date().optional(),
+  movieId: Joi.number().optional(),
+  auditoriumId: Joi.number().optional(),
 });
 
 export interface ListValidation {

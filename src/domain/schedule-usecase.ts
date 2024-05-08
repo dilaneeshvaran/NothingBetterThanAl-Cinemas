@@ -2,6 +2,7 @@ import { Between, DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie";
 import { Ticket } from "../database/entities/ticket";
+import { Auditorium } from "../database/entities/auditorium";
 
 
 export interface ListSchedule {
@@ -34,18 +35,35 @@ export class ScheduleUsecase {
         };
       }
 
-      async getScheduleById(scheduleId: number): Promise<Schedule> {
-        const query = this.db.createQueryBuilder(Schedule, "schedules");
+      async getScheduleById(scheduleId: number): Promise<Schedule & { auditoriumCapacity: number, ticketsSold: number }> {
+        const scheduleQuery = this.db.createQueryBuilder(Schedule, "schedules");
+        scheduleQuery.where("schedules.id = :id", { id: scheduleId });
       
-        query.where("schedules.id = :id", { id: scheduleId });
-      
-        const schedule = await query.getOne();
+        const schedule = await scheduleQuery.getOne();
       
         if (!schedule) {
           throw new Error('Schedule not found');
         }
       
-        return schedule;
+        const auditoriumQuery = this.db.createQueryBuilder(Auditorium, "auditoriums");
+        auditoriumQuery.where("auditoriums.id = :id", { id: schedule.auditoriumId });
+      
+        const auditorium = await auditoriumQuery.getOne();
+      
+        if (!auditorium) {
+          throw new Error('Auditorium not found');
+        }
+      
+        const ticketQuery = this.db.createQueryBuilder(Ticket, "tickets");
+        ticketQuery.where("tickets.scheduleId = :id", { id: scheduleId });
+      
+        const ticketsSold = await ticketQuery.getCount();
+      
+        return {
+          ...schedule,
+          auditoriumCapacity: auditorium.capacity,
+          ticketsSold: ticketsSold
+        };
       }
 
     async getScheduleBetween(startDate: string, endDate: string): 
