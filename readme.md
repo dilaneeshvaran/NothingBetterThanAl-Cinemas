@@ -1,9 +1,7 @@
-# Hi, this is an API REST created using Node & TypeScript to Manage a Cinema Theatre (Nothing Better Than AL)
+# This is an API REST created using Node & TypeScript to Manage a Cinema Theatre (Nothing Better Than AL)
 
-# To run the server :
-# please run the docker containers
-
-# then please enter this command in your console :
-# npm run start:dev
+# 1 - npm install
+# 2 - run the docker containers
+# 3 - npm run start:dev
 
 # Postman is recommended to send your requests

@@ -123,6 +123,15 @@ app.post("/schedules", async (req: Request, res: Response) => {
     return;
   }
 
+  // Check if schedule is within opening hours and not on the weekend
+  const scheduleDate = new Date(scheduleRequest.date);
+  const dayOfWeek = scheduleDate.getDay();
+  const hour = scheduleDate.getHours();
+  if (dayOfWeek === 0 || dayOfWeek === 6 || hour < 9 || hour > 20) {
+    res.status(400).send({ error: "Schedules can only be between 9am and 8pm from Monday to Friday" });
+    return;
+  }
+
   if (await scheduleUsecase.doesOverlap(scheduleRequest as Schedule)) {
     res.status(400).send({ error: "Overlapping schedules are not allowed" });
     return;
