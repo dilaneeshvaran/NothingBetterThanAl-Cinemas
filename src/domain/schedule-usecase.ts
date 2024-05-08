@@ -95,31 +95,29 @@ async updateSchedule(
 }
 
 async doesOverlap(schedule: Schedule): Promise<boolean> {
-    const repo = this.db.getRepository(Schedule);
-    let scheduleDuration=0;
-    const movieRepo =  this.db.getRepository(Movie);
-    const movie = await movieRepo.findOne({ where: { id: schedule.movieId } });
+  const repo = this.db.getRepository(Schedule);
+  let scheduleDuration = 0;
+  const movieRepo = this.db.getRepository(Movie);
+  const movie = await movieRepo.findOne({ where: { id: schedule.movieId } });
 
-if (movie) {
-  const movieDuration = movie.duration;
-  scheduleDuration = movieDuration+30;
-}
-
-    // calculate end time, duration here is in minutes
-    const endTime = new Date(schedule.date.getTime() + scheduleDuration * 60000);
-  
-    // check for overlap
-    const overlappingSchedules = await repo.find({
-      where: [
-        {
-          movieId: schedule.movieId,
-          date: Between(schedule.date, endTime)
-        }
-      ]
-    });
-  
-    return overlappingSchedules.length > 0;
+  if (movie) {
+    const movieDuration = movie.duration;
+    scheduleDuration = movieDuration + 30; // movie duration + cleaning & publicity interval
   }
+
+  // calculate end time, duration here is in minutes
+  const endTime = new Date(schedule.date.getTime() + scheduleDuration * 60000);
+
+  // check for overlap
+  const overlappingSchedules = await repo.createQueryBuilder("schedule")
+    .innerJoin(Movie, "movie", "movie.id = schedule.movieId")
+    .where("schedule.movieId = :movieId", { movieId: schedule.movieId })
+    .andWhere("schedule.date <= :endTime AND DATE_ADD(schedule.date, INTERVAL movie.duration + 30 MINUTE) >= :startTime", 
+              { endTime: endTime, startTime: schedule.date })
+    .getMany();
+
+  return overlappingSchedules.length > 0;
+}
 
 async deleteSchedule(id: number): Promise<Schedule | null> {
     const repo = this.db.getRepository(Schedule);

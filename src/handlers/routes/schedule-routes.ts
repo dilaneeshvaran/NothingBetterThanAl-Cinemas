@@ -11,6 +11,8 @@ import { generateValidationErrorMessage } from "../validators/generate-validatio
 import { AppDataSource } from "../../database/database";
 import { Schedule } from "../../database/entities/schedule";
 import { ScheduleUsecase } from "../../domain/schedule-usecase";
+import { Movie } from "../../database/entities/movie";
+import { Auditorium } from "../../database/entities/auditorium";
 
 export const initScheduleRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -98,6 +100,22 @@ app.post("/schedules", async (req: Request, res: Response) => {
   scheduleRequest.date = new Date(scheduleRequest.date);
 
   const scheduleRepo = AppDataSource.getRepository(Schedule);
+  const movieRepo = AppDataSource.getRepository(Movie);
+  const auditoriumRepo = AppDataSource.getRepository(Auditorium);
+
+// Check if movie exists
+const movie = await movieRepo.findOne({ where: { id: scheduleRequest.movieId } });
+if (!movie) {
+  res.status(400).send({ error: "Movie does not exist" });
+  return;
+}
+
+// Check if auditorium exists
+const auditorium = await auditoriumRepo.findOne({ where: { id: scheduleRequest.auditoriumId } });
+if (!auditorium) {
+  res.status(400).send({ error: "Auditorium does not exist" });
+  return;
+}
 
   const scheduleUsecase = new ScheduleUsecase(AppDataSource);
 
