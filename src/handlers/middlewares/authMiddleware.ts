@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 
 interface RequestWithUser extends Request {
-    user: any
+  user?: any;
 }
 
 export function authenticateToken(req: RequestWithUser, res: Response, next: NextFunction) {
@@ -14,7 +14,7 @@ export function authenticateToken(req: RequestWithUser, res: Response, next: Nex
     jwt.verify(token, 'your_secret_key', (err, user) => {
         if (err) return res.sendStatus(403)
         req.user = user
-        next() //
+        next()
     })
 }
 

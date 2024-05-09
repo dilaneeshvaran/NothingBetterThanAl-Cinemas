@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { authenticateToken, authorizeAdmin } from '../middlewares/authMiddleware';
 
 import {
   movieValidation,
@@ -86,7 +87,7 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", async (req: Request, r
   }
 });
 
-  app.post("/movies", async (req: Request, res: Response) => {
+  app.post("/movies",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = movieValidation.validate(req.body);
   
     if (validation.error) {
@@ -107,7 +108,7 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", async (req: Request, r
     }
   });
 
-  app.patch("/movies/:id", async (req: Request, res: Response) => {
+  app.patch("/movies/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateMovieValidation.validate({
       ...req.params,
       ...req.body,
@@ -140,7 +141,7 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", async (req: Request, r
     }
   });
 
-  app.delete("/movies/:id", async (req: Request, res: Response) => {
+  app.delete("/movies/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteMovieValidation.validate(req.params);
 
     if (validation.error) {

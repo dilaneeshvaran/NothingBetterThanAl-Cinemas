@@ -17,7 +17,7 @@ export const initUserRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
-  app.get("/users", async (req: Request, res: Response) => {
+  app.get("/users",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
 
     if (validation.error) {
@@ -48,7 +48,7 @@ export const initUserRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/users/:userId", async (req: Request, res: Response) => {
+  app.get("/users/:userId",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const { userId } = req.params;
   
     try {
@@ -80,6 +80,12 @@ export const initUserRoutes = (app: express.Express) => {
     const userRequest = validation.value;
   
     const userUsecase = new UserUsecase(AppDataSource);
+  
+    const isEmailExists = await userUsecase.isEmailExists(userRequest.email);
+    if (isEmailExists) {
+      res.status(400).send({ message: "Email already in use" });
+      return;
+    }
   
     userRequest.password = await userUsecase.hashPassword(userRequest.password);
   
@@ -125,8 +131,22 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
       res.status(500).send({ error: "Internal error" });
     }
   });
+
+  app.patch("/users/:id/role", authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const userUsecase = new UserUsecase(AppDataSource);
+    const updatedUser = await userUsecase.changeUserRole(Number(id), role);
+
+    if (updatedUser) {
+        res.status(200).send(updatedUser);
+    } else {
+        res.status(404).send({ error: "User not found" });
+    }
+});
   
-  app.delete("/users/:id", async (req: Request, res: Response) => {
+  app.delete("/users/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteUserValidation.validate(req.params);
   
     if (validation.error) {
@@ -153,7 +173,7 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
     }
   });
 
-  app.post("/users/auth", async (req: Request, res: Response) => {
+  app.post("/users/login", async (req: Request, res: Response) => {
     const validation = authUserValidation.validate(req.body);
   
     if (validation.error) {

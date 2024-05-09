@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import moment from 'moment';
+import { authenticateToken, authorizeAdmin } from '../middlewares/authMiddleware';
 
 import {
     auditoriumValidation,
@@ -69,7 +70,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 
-  app.post("/auditoriums", async (req: Request, res: Response) => {
+  app.post("/auditoriums",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = auditoriumValidation.validate(req.body);
 
     if (validation.error) {
@@ -89,7 +90,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
-  app.patch("/auditoriums/:id", async (req: Request, res: Response) => {
+  app.patch("/auditoriums/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateAuditoriumValidation.validate({
       ...req.params,
       ...req.body,
@@ -123,7 +124,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 
-  app.delete("/auditoriums/:id", async (req: Request, res: Response) => {
+  app.delete("/auditoriums/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteAuditoriumValidation.validate(req.params);
 
     if (validation.error) {

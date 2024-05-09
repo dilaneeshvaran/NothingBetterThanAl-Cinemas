@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import moment from 'moment';
+import { authenticateToken, authorizeAdmin } from '../middlewares/authMiddleware';
 
 import {
   superTicketValidation,
@@ -17,7 +17,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
-  app.get("/supertickets", async (req: Request, res: Response) => {
+  app.get("/supertickets",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listSuperTicketValidation.validate(req.query);
   
     if (validation.error) {
@@ -48,7 +48,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/supertickets/:superTicketId", async (req: Request, res: Response) => {
+  app.get("/supertickets/:superTicketId",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const { superTicketId } = req.params;
   
     try {
@@ -87,7 +87,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.patch("/supertickets/:id", async (req: Request, res: Response) => {
+  app.patch("/supertickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateSuperTicketValidation.validate({
       ...req.params,
       ...req.body,
@@ -152,7 +152,7 @@ app.get("/supertickets/:id/validate", async (req: Request, res: Response) => {
   res.status(200).send({ isValid });
 });
 
-  app.delete("/supertickets/:id", async (req: Request, res: Response) => {
+  app.delete("/supertickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteSuperTicketValidation.validate(req.params);
 
     if (validation.error) {

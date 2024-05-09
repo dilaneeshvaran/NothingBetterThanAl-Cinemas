@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { authenticateToken, authorizeAdmin } from '../middlewares/authMiddleware';
 
 import {listValidation
 } from "../validators/schedule-validator";
@@ -16,7 +17,7 @@ export const initTicketRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
-  app.get("/tickets", async (req: Request, res: Response) => {
+  app.get("/tickets",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
   
     if (validation.error) {
@@ -47,7 +48,7 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/tickets/:ticketId", async (req: Request, res: Response) => {
+  app.get("/tickets/:ticketId",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const { ticketId } = req.params;
   
     try {
@@ -109,7 +110,7 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.patch("/tickets/:id", async (req: Request, res: Response) => {
+  app.patch("/tickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateTicketValidation.validate({
       ...req.params,
       ...req.body,
@@ -166,7 +167,7 @@ export const initTicketRoutes = (app: express.Express) => {
     res.status(200).send({ isValidated: true });
 });
 
-  app.delete("/tickets/:id", async (req: Request, res: Response) => {
+  app.delete("/tickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteTicketValidation.validate(req.params);
 
     if (validation.error) {

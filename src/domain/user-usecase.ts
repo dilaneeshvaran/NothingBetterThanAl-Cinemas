@@ -12,8 +12,12 @@ export interface UpdateUserParams {
     name?: string;
     email?: string;
     password?: string;
-    role?: 'admin' | 'client';
     balance?: number;
+  }
+
+  export interface ChangeUserRoleParams {
+    id: number;
+    role?: 'admin' | 'client';
   }
 
 export class UserUsecase {
@@ -64,23 +68,24 @@ export class UserUsecase {
 
     async updateUser(
         id: number,
-        { name, email, password, role, balance }: UpdateUserParams
+        { name, email, password, balance }: UpdateUserParams
     ): Promise<User | null> {
         const repo = this.db.getRepository(User);
         const userFound = await repo.findOneBy({ id });
         if (userFound === null) return null;
     
+        if (email) {
+            const emailExists = await this.isEmailExists(email);
+            if (emailExists && email !== userFound.email) {
+                throw new Error("Email already in use");
+            }
+            userFound.email = email;
+        }
         if (name) {
             userFound.name = name;
         }
-        if (email) {
-            userFound.email = email;
-        }  
         if (password) {
             userFound.password = await this.hashPassword(password);
-        }
-        if (role) {
-            userFound.role = role;
         }
         if (balance) {
             userFound.balance = balance;
@@ -124,5 +129,25 @@ export class UserUsecase {
         const match = await bcrypt.compare(password, hashedPassword);
         return match;
     }
+
+    async isEmailExists(email: string): Promise<boolean> {
+        const repo = this.db.getRepository(User);
+        const user = await repo.findOne({ where: { email } });
     
+        return !!user;
+    }
+
+    async changeUserRole(userId: number, newRole: 'admin' | 'client'): Promise<User | null> {
+        const repo = this.db.getRepository(User);
+        const user = await repo.findOne({ where: { id: userId } });
+    
+        if (!user) {
+            return null;
+        }
+    
+        user.role = newRole;
+        const updatedUser = await repo.save(user);
+    
+        return updatedUser;
+    }
 }

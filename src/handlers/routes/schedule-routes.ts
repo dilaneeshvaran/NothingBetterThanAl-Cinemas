@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { authenticateToken, authorizeAdmin } from '../middlewares/authMiddleware';
 
 import {
   scheduleValidation,
@@ -17,7 +18,7 @@ export const initScheduleRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
-  app.get("/schedules", async (req: Request, res: Response) => {
+  app.get("/schedules",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
 
     if (validation.error) {
@@ -84,7 +85,7 @@ export const initScheduleRoutes = (app: express.Express) => {
     }
 });
 
-app.post("/schedules", async (req: Request, res: Response) => {
+app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
   const validation = scheduleValidation.validate(req.body);
 
   if (validation.error) {
@@ -145,7 +146,7 @@ app.post("/schedules", async (req: Request, res: Response) => {
   }
 });
 
-  app.patch("/schedules/:id", async (req: Request, res: Response) => {
+  app.patch("/schedules/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateScheduleValidation.validate({
       ...req.params,
       ...req.body,
@@ -179,7 +180,7 @@ app.post("/schedules", async (req: Request, res: Response) => {
   });
 
 
-  app.delete("/schedules/:id", async (req: Request, res: Response) => {
+  app.delete("/schedules/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteScheduleValidation.validate(req.params);
 
     if (validation.error) {
