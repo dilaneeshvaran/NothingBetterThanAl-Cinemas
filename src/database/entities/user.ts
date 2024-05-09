@@ -9,6 +9,9 @@ export class User {
     name: string;
 
     @Column()
+    email: string;
+
+    @Column()
     password: string; // hashed password
 
     @Column()
@@ -17,17 +20,19 @@ export class User {
     @Column({ type: 'varchar', nullable: true })
     token: string; // authentication token
 
-    @Column()
+    @Column({default:0})
     balance: number;
 
     constructor(
         name: string,
+        email: string,
         password: string,
         role: 'admin' | 'client',
         token: string,
         balance: number
       ) {
         this.name = name;
+        this.email = email;
         this.password = password;
         this.role = role;
         this.token = token;

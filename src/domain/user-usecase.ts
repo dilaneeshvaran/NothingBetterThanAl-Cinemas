@@ -1,5 +1,6 @@
 import {DataSource} from "typeorm";
 import { User } from "../database/entities/user";
+import bcrypt from 'bcrypt';
 
 export interface ListUser {
     limit: number;
@@ -9,9 +10,9 @@ export interface ListUser {
 export interface UpdateUserParams {
     id: number;
     name?: string;
+    email?: string;
     password?: string;
     role?: 'admin' | 'client';
-    token?: string;
     balance?: number;
   }
 
@@ -34,10 +35,25 @@ export class UserUsecase {
     }
 
     async getUserById(userId: number): Promise<User> {
-        const userQuery = this.db.createQueryBuilder(User, "users");
-        userQuery.where("users.id = :id", { id: userId });
+        const query = this.db.createQueryBuilder(User, "users");
       
-        const user = await userQuery.getOne();
+        query.where("users.id = :id", { id: userId });
+      
+        const user = await query.getOne();
+      
+        if (!user) {
+            throw new Error('User not found');
+        }
+      
+        return user;
+    }
+
+    async getUserByEmail(email: string): Promise<User> {
+        const query = this.db.createQueryBuilder(User, "users");
+      
+        query.where("users.email = :email", { email });
+      
+        const user = await query.getOne();
       
         if (!user) {
             throw new Error('User not found');
@@ -48,23 +64,23 @@ export class UserUsecase {
 
     async updateUser(
         id: number,
-        { name, password, role, token, balance }: UpdateUserParams
+        { name, email, password, role, balance }: UpdateUserParams
     ): Promise<User | null> {
         const repo = this.db.getRepository(User);
         const userFound = await repo.findOneBy({ id });
         if (userFound === null) return null;
-
+    
         if (name) {
             userFound.name = name;
+        }
+        if (email) {
+            userFound.email = email;
         }  
         if (password) {
-            userFound.password = password;
+            userFound.password = await this.hashPassword(password);
         }
         if (role) {
             userFound.role = role;
-        }
-        if (token) {
-            userFound.token = token;
         }
         if (balance) {
             userFound.balance = balance;
@@ -97,4 +113,16 @@ export class UserUsecase {
         await repo.save(userFound);
         return userFound;
     }
+
+    async hashPassword(password: string): Promise<string> {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        return hashedPassword;
+    }
+    
+    async comparePassword(password: string, hashedPassword: string): Promise<boolean> {
+        const match = await bcrypt.compare(password, hashedPassword);
+        return match;
+    }
+    
 }

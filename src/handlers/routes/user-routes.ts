@@ -1,10 +1,11 @@
 import express, { Request, Response } from "express";
 import jwt from 'jsonwebtoken';
+import { authenticateToken, authorizeAdmin } from '../middlewares/authMiddleware';
 
 import {
   userValidation,
 updateUserValidation,
-deleteUserValidation,listValidation
+deleteUserValidation,listValidation,authUserValidation
 } from "../validators/user-validator";
 import { generateValidationErrorMessage } from "../validators/generate-validation-message";
 import { AppDataSource } from "../../database/database";
@@ -65,26 +66,32 @@ export const initUserRoutes = (app: express.Express) => {
     }
   });
 
-app.post("/users", async (req: Request, res: Response) => {
-  const validation = userValidation.validate(req.body);
 
-  if (validation.error) {
-    res
-      .status(400)
-      .send(generateValidationErrorMessage(validation.error.details));
-    return;
-  }
-
-  const userRequest = validation.value;
-  const userRepo = AppDataSource.getRepository(User);
-
-  try {
-    const userCreated = await userRepo.save(userRequest);
-    res.status(201).send(userCreated);
-  } catch (error) {
-    res.status(500).send({ error: "Internal error" });
-  }
-});
+  app.post("/users", async (req: Request, res: Response) => {
+    const validation = userValidation.validate(req.body);
+  
+    if (validation.error) {
+      res
+        .status(400)
+        .send(generateValidationErrorMessage(validation.error.details));
+      return;
+    }
+  
+    const userRequest = validation.value;
+  
+    const userUsecase = new UserUsecase(AppDataSource);
+  
+    userRequest.password = await userUsecase.hashPassword(userRequest.password);
+  
+    const userRepo = AppDataSource.getRepository(User);
+  
+    try {
+      const userCreated = await userRepo.save(userRequest);
+      res.status(201).send(userCreated);
+    } catch (error) {
+      res.status(500).send({ error: "Internal error" });
+    }
+  });
 
 app.patch("/users/:id", async (req: Request, res: Response) => {
     const validation = updateUserValidation.validate({
@@ -146,8 +153,8 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
     }
   });
 
-  app.post("/users/authenticate", async (req: Request, res: Response) => {
-    const validation = userValidation.validate(req.body);
+  app.post("/users/auth", async (req: Request, res: Response) => {
+    const validation = authUserValidation.validate(req.body);
   
     if (validation.error) {
       res
@@ -158,17 +165,20 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
   
     const userRequest = validation.value;
   
-    // Authenticate user
     try {
       const userUsecase = new UserUsecase(AppDataSource);
-      const user = await userUsecase.getUserById(userRequest.id);
+      const user = await userUsecase.getUserByEmail(userRequest.email);
   
-      if (user && user.password === userRequest.password) {
-        // Generate JWT when user authenticated successfully
-        const token = jwt.sign({ id: user.id }, 'your_secret_key', { expiresIn: '1h' });
-        res.status(200).send({ message: "User authenticated successfully", token });
+      if (user) {
+        const isPasswordMatch = await userUsecase.comparePassword(userRequest.password, user.password);
+        if (isPasswordMatch) {
+          // Generate JWT token when user authed
+          const token = jwt.sign({ id: user.id, role: user.role }, 'your_secret_key', { expiresIn: '1h' });
+          res.status(200).send({ message: "User authenticated successfully", token });
+        } else {
+          res.status(401).send({ message: "Invalid username or password" });
+        }
       } else {
-        // User authentication failed
         res.status(401).send({ message: "Invalid username or password" });
       }
     } catch (error) {
@@ -188,7 +198,6 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
   
     const userRequest = validation.value;
   
-    // Invalidate user token
     try {
       const userUsecase = new UserUsecase(AppDataSource);
       await userUsecase.invalidateUserToken(userRequest.id);
@@ -198,4 +207,3 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
     }
   });
 };
-
