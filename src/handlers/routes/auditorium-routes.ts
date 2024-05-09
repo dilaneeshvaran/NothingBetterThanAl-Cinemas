@@ -20,7 +20,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
-  app.get("/auditoriums", async (req: Request, res: Response) => {
+  app.get("/auditoriums", authenticateToken, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
 
     if (validation.error) {
@@ -51,7 +51,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/auditoriums/:auditoriumId", async (req: Request, res: Response) => {
+  app.get("/auditoriums/:auditoriumId",authenticateToken,  async (req: Request, res: Response) => {
     const { auditoriumId } = req.params;
   
     try {
@@ -155,7 +155,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 
-  app.get("/auditoriums/:auditoriumId/schedules/:startDate", async (req: Request, res: Response) => {
+  app.get("/auditoriums/:auditoriumId/schedules/:startDate",authenticateToken,  async (req: Request, res: Response) => {
     const validation = listAuditoriumScheduleValidation.validate(req.params);
   
     

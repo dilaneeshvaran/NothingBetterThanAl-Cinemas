@@ -17,7 +17,7 @@ export const initMovieRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
-app.get("/movies", async (req: Request, res: Response) => {
+app.get("/movies",authenticateToken,  async (req: Request, res: Response) => {
   const validation = listValidation.validate(req.query);
 
   if (validation.error) {
@@ -48,7 +48,7 @@ app.get("/movies", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/movies/:movieId", async (req: Request, res: Response) => {
+app.get("/movies/:movieId",authenticateToken,  async (req: Request, res: Response) => {
   const { movieId } = req.params;
 
   try {
@@ -68,7 +68,7 @@ app.get("/movies/:movieId", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/movies/:movieId/schedules/:startDate/:endDate", async (req: Request, res: Response) => {
+app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, async (req: Request, res: Response) => {
   const { movieId, startDate, endDate } = req.params;
 
   try {

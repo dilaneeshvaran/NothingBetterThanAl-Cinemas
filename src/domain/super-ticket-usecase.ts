@@ -147,4 +147,10 @@ export class SuperTicketUsecase {
         await repo.remove(superTicketFound);
         return superTicketFound;
     }
+
+    async getSuperTicketsByUserId(userId: number) {
+        const superTicketRepo = this.db.getRepository(SuperTicket);
+        const superTickets = await superTicketRepo.find({ where: { userId } });
+        return superTickets;
+      }
 }

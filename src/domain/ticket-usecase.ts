@@ -1,7 +1,10 @@
-import { DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { DataSource } from "typeorm";
 import { Ticket } from "../database/entities/ticket";
 import { ScheduleUsecase } from "./schedule-usecase";
 import { AppDataSource } from "../database/database";
+import { User } from "../database/entities/user";
+import { Auditorium } from "../database/entities/auditorium";
+import { Schedule } from "../database/entities/schedule";
 
 export interface ListTicket {
     limit: number;
@@ -70,6 +73,7 @@ export class TicketUsecase {
         return ticketUpdate;
       }
 
+      
       async validateTicket(id: number): Promise<boolean> {
         const repo = this.db.getRepository(Ticket);
         const ticket = await repo.findOne({ where: { id } });
@@ -109,4 +113,56 @@ async deleteTicket(id: number): Promise<Ticket | null> {
     await repo.remove(ticketFound);
     return ticketFound;
   }
+  
+    async checkScheduleExists(scheduleId: number) {
+      const scheduleRepo = this.db.getRepository(Schedule);
+      const schedule = await scheduleRepo.findOne({ where: { id: scheduleId } });
+      if (!schedule) {
+        throw new Error("Schedule does not exist");
+      }
+      return schedule;
+    }
+  
+    async checkAuditoriumCapacity(schedule: any) {
+      const auditoriumRepo = this.db.getRepository(Auditorium);
+      const auditorium = await auditoriumRepo.findOne({ where: { id: schedule.auditoriumId } });
+      if (!auditorium) {
+        throw new Error("Auditorium does not exist");
+      }
+
+      const scheduleUsecase = new ScheduleUsecase(AppDataSource);
+      const ticketsSold = await scheduleUsecase.getTicketsSold(schedule.id);
+      if (ticketsSold >= auditorium.capacity) {
+        throw new Error("Auditorium capacity has been reached");
+      }
+    }
+  
+    async fetchUserAndCheckBalance(userId: number, ticketPrice: number) {
+      const userRepo = this.db.getRepository(User);
+      const user = await userRepo.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new Error("User does not exist");
+      }
+      if (user.balance < ticketPrice) {
+        throw new Error("Insufficient balance");
+      }
+      return user;
+    }
+  
+    async updateUserBalance(user: any, ticketPrice: number) {
+      user.balance -= ticketPrice;
+      const userRepo = this.db.getRepository(User);
+      await userRepo.save(user);
+    }
+  
+    async saveTicket(ticketRequest: any) {
+      const ticketRepo = this.db.getRepository(Ticket);
+      const ticketCreated = await ticketRepo.save(ticketRequest);
+      return ticketCreated;
+    }
+    async getTicketsByUserId(userId: number) {
+      const ticketRepo = this.db.getRepository(Ticket);
+      const tickets = await ticketRepo.find({ where: { userId } });
+      return tickets;
+    }
 }

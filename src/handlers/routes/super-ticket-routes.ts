@@ -66,7 +66,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.post("/supertickets", async (req: Request, res: Response) => {
+  app.post("/supertickets", authenticateToken, async (req: Request, res: Response) => {
     const validation = superTicketValidation.validate(req.body);
   
     if (validation.error) {
@@ -120,7 +120,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.patch("/supertickets/:id/bookSchedule", async (req: Request, res: Response) => {
+  app.patch("/supertickets/:id/bookSchedule", authenticateToken, async (req: Request, res: Response) => {
     
     const validation = updateSuperTicketValidation.validate(req.params);
 
@@ -144,7 +144,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
 });
 
-app.get("/supertickets/:id/validate", async (req: Request, res: Response) => {
+app.get("/supertickets/:id/validate", authenticateToken, async (req: Request, res: Response) => {
   const superTicketId = Number(req.params.id);
   const superTicketUsecase = new SuperTicketUsecase(AppDataSource);
   const isValid = await superTicketUsecase.validateSuperTicket(superTicketId);

@@ -6,11 +6,11 @@ import {listValidation
 import {ticketValidation,updateTicketValidation,deleteTicketValidation} from "../validators/ticket-validator"
 import { generateValidationErrorMessage } from "../validators/generate-validation-message";
 import { AppDataSource } from "../../database/database";
-import { Ticket } from "../../database/entities/ticket";
 import { TicketUsecase } from "../../domain/ticket-usecase";
-import { Schedule } from "../../database/entities/schedule";
-import { Auditorium } from "../../database/entities/auditorium";
-import { ScheduleUsecase } from "../../domain/schedule-usecase";
+import { TransactionUsecase } from "../../domain/transaction-usecase";
+import { RequestWithUser } from "../../types/request-with-user";
+import { TransactionType } from "../../database/entities/transaction";
+
 
 export const initTicketRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -66,9 +66,9 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.post("/tickets", async (req: Request, res: Response) => {
+  app.post("/tickets", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const validation = ticketValidation.validate(req.body);
-  
+
     if (validation.error) {
       res
         .status(400)
@@ -76,39 +76,29 @@ export const initTicketRoutes = (app: express.Express) => {
       return;
     }
   
-    const ticketRequest = validation.value;
-    const ticketRepo = AppDataSource.getRepository(Ticket);
-    const scheduleRepo = AppDataSource.getRepository(Schedule);
-    const auditoriumRepo = AppDataSource.getRepository(Auditorium);
-    const scheduleUsecase = new ScheduleUsecase(AppDataSource);
-  
-    // Check if schedule exists
-    const schedule = await scheduleRepo.findOne({ where: { id: ticketRequest.scheduleId } });
-    if (!schedule) {
-      res.status(400).send({ error: "Schedule does not exist" });
-      return;
-    }
-  
-    // Check if auditorium exists and its capacity is respected
-    const auditorium = await auditoriumRepo.findOne({ where: { id: schedule.auditoriumId } });
-    if (!auditorium) {
-      res.status(400).send({ error: "Auditorium does not exist" });
-      return;
-    }
-  
-    const ticketsSold = await scheduleUsecase.getTicketsSold(schedule.id);
-    if (ticketsSold >= auditorium.capacity) {
-      res.status(400).send({ error: "Auditorium capacity has been reached" });
-      return;
-    }
-  
     try {
-      const ticketCreated = await ticketRepo.save(ticketRequest);
-      res.status(201).send(ticketCreated);
-    } catch (error) {
-      res.status(500).send({ error: "Internal error" });
-    }
-  });
+      const ticketUsecase = new TicketUsecase(AppDataSource);
+      const transactionUsecase = new TransactionUsecase(AppDataSource);
+      const ticketRequest = req.body;
+  
+      if (!req.user) {
+          res.status(401).send({ error: "Unauthorized" });
+          return;
+      }
+  
+      const schedule = await ticketUsecase.checkScheduleExists(ticketRequest.scheduleId);
+      await ticketUsecase.checkAuditoriumCapacity(schedule);
+      const user = await ticketUsecase.fetchUserAndCheckBalance(req.user.id, ticketRequest.price);
+      await ticketUsecase.updateUserBalance(user, ticketRequest.price);
+      ticketRequest.userId = user.id;
+      const ticketCreated = await ticketUsecase.saveTicket(ticketRequest);
+      const transaction = await transactionUsecase.recordTransaction(req.user.id, TransactionType.PURCHASE, ticketRequest.price);
+      res.status(201).send({ ticket: ticketCreated, transaction });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Internal error" });
+  }
+});
 
   app.patch("/tickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateTicketValidation.validate({
@@ -143,7 +133,7 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/tickets/:id/validate", async (req: Request, res: Response) => {
+  app.get("/tickets/:id/validate", authenticateToken, async (req: Request, res: Response) => {
     const ticketId = Number(req.params.id);
     const ticketUsecase = new TicketUsecase(AppDataSource);
     const ticket = await ticketUsecase.getTicketById(ticketId);

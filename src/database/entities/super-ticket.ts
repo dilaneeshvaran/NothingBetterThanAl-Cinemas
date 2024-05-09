@@ -4,6 +4,9 @@ import { Entity, PrimaryGeneratedColumn, Column} from "typeorm";
 export class SuperTicket {
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column()
+    userId!: number;
   
     @Column({ default: 100 })
     price: number;

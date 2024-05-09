@@ -5,6 +5,7 @@ import { initScheduleRoutes } from "./handlers/routes/schedule-routes";
 import { initMovieRoutes } from "./handlers/routes/movie-routes";
 import { initSuperTicketRoutes } from "./handlers/routes/super-ticket-routes";
 import {initUserRoutes } from "./handlers/routes/user-routes";
+import { initTransactionRoutes } from "./handlers/routes/transaction-routes";
 import { AppDataSource } from "./database/database";
 
 const main = async () => {
@@ -27,6 +28,7 @@ const main = async () => {
   initMovieRoutes(app);
   initSuperTicketRoutes(app);
   initUserRoutes(app);
+  initTransactionRoutes(app);
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });

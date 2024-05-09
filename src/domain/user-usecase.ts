@@ -1,6 +1,7 @@
 import {DataSource} from "typeorm";
 import { User } from "../database/entities/user";
 import bcrypt from 'bcrypt';
+import { Transaction, TransactionType } from '../database/entities/transaction';
 
 export interface ListUser {
     limit: number;
@@ -12,7 +13,6 @@ export interface UpdateUserParams {
     name?: string;
     email?: string;
     password?: string;
-    balance?: number;
   }
 
   export interface ChangeUserRoleParams {
@@ -68,7 +68,7 @@ export class UserUsecase {
 
     async updateUser(
         id: number,
-        { name, email, password, balance }: UpdateUserParams
+        { name, email, password }: UpdateUserParams
     ): Promise<User | null> {
         const repo = this.db.getRepository(User);
         const userFound = await repo.findOneBy({ id });
@@ -87,9 +87,6 @@ export class UserUsecase {
         if (password) {
             userFound.password = await this.hashPassword(password);
         }
-        if (balance) {
-            userFound.balance = balance;
-        }
         const userUpdate = await repo.save(userFound);
         return userUpdate;
     }
@@ -104,20 +101,6 @@ export class UserUsecase {
         return userFound;
     }
 
-   
-    async invalidateUserToken(id: number): Promise<User> {
-        const repo = this.db.getRepository(User);
-        const userFound = await repo.findOne({ where: { id } });
-    
-        if (!userFound) {
-            throw new Error(`User with id ${id} not found`);
-        }
-    
-        userFound.token = '';
-    
-        await repo.save(userFound);
-        return userFound;
-    }
 
     async hashPassword(password: string): Promise<string> {
         const saltRounds = 10;
@@ -150,4 +133,5 @@ export class UserUsecase {
     
         return updatedUser;
     }
+    
 }

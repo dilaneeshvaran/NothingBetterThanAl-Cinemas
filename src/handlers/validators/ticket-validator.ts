@@ -1,12 +1,14 @@
 import Joi from "joi";
 
 export interface TicketValidation {
+  userId?: number;
   price?: number;
   scheduleId: number;
   used?: boolean;
 }
 
 export const ticketValidation = Joi.object<TicketValidation>({
+  userId: Joi.number().optional(),
   price: Joi.number().optional(),
   scheduleId: Joi.number().required(),
   used: Joi.boolean().optional()

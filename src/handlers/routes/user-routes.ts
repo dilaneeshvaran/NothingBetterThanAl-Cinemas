@@ -99,7 +99,7 @@ export const initUserRoutes = (app: express.Express) => {
     }
   });
 
-app.patch("/users/:id", async (req: Request, res: Response) => {
+app.patch("/users/:id",authenticateToken, async (req: Request, res: Response) => {
     const validation = updateUserValidation.validate({
       ...req.params,
       ...req.body,
@@ -206,7 +206,7 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
     }
   });
 
-  app.post("/users/logout", async (req: Request, res: Response) => {
+  app.post("/users/logout", authenticateToken,async (req: Request, res: Response) => {
     const validation = deleteUserValidation.validate(req.body);
   
     if (validation.error) {
@@ -220,10 +220,9 @@ app.patch("/users/:id", async (req: Request, res: Response) => {
   
     try {
       const userUsecase = new UserUsecase(AppDataSource);
-      await userUsecase.invalidateUserToken(userRequest.id);
       res.status(200).send({ message: "User logged out successfully" });
     } catch (error) {
       res.status(500).send({ error: "Internal error" });
     }
-  });
+  });  
 };

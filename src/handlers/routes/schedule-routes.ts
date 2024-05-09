@@ -49,7 +49,7 @@ export const initScheduleRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/schedules/:scheduleId", async (req: Request, res: Response) => {
+  app.get("/schedules/:scheduleId", authenticateToken, async (req: Request, res: Response) => {
     const { scheduleId } = req.params;
   
     try {
@@ -67,7 +67,7 @@ export const initScheduleRoutes = (app: express.Express) => {
     }
   });
 
-  app.get("/schedules/:startDate/:endDate", async (req: Request, res: Response) => {
+  app.get("/schedules/:startDate/:endDate",authenticateToken,  async (req: Request, res: Response) => {
     const { startDate, endDate } = req.params;
   
     try {
