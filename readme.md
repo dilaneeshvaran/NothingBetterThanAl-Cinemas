@@ -4,4 +4,4 @@
 # 2 - run the docker containers
 # 3 - npm run start:dev
 
-# Postman is recommended to send your requests
+# visit http://localhost:3000/api-docs

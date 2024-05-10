@@ -1,4 +1,4 @@
-import { Between, DataSource, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
+import { DataSource } from "typeorm";
 import { Schedule } from "../database/entities/schedule";
 import { Movie } from "../database/entities/movie";
 import { Ticket } from "../database/entities/ticket";

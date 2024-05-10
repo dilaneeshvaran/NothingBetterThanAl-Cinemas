@@ -17,6 +17,34 @@ export const initMovieRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
+/**
+ * @swagger
+ * /movies:
+ *   get:
+ *     tags:
+ *       - Movies
+ *     description: List movies with pagination
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         description: Page number for pagination
+ *         schema:
+ *           type: integer
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         description: Number of movies per page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Movies retrieved successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
 app.get("/movies",authenticateToken,  async (req: Request, res: Response) => {
   const validation = listValidation.validate(req.query);
 
@@ -48,6 +76,28 @@ app.get("/movies",authenticateToken,  async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /movies/{movieId}:
+ *   get:
+ *     tags:
+ *       - Movies
+ *     description: Get a specific movie by its ID and its associated schedules
+ *     parameters:
+ *       - name: movieId
+ *         in: path
+ *         required: true
+ *         description: ID of the movie
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Movie retrieved successfully
+ *       404:
+ *         description: Movie not found
+ *       500:
+ *         description: Internal server error
+ */
 app.get("/movies/:movieId",authenticateToken,  async (req: Request, res: Response) => {
   const { movieId } = req.params;
 
@@ -68,6 +118,42 @@ app.get("/movies/:movieId",authenticateToken,  async (req: Request, res: Respons
   }
 });
 
+/**
+ * @swagger
+ * /movies/{movieId}/schedules/{startDate}/{endDate}:
+ *   get:
+ *     tags:
+ *       - Movies
+ *     description: Get the schedule for a movie between two dates
+ *     parameters:
+ *       - name: movieId
+ *         in: path
+ *         required: true
+ *         description: ID of the movie
+ *         schema:
+ *           type: integer
+ *       - name: startDate
+ *         in: path
+ *         required: true
+ *         description: Start date of the schedule
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - name: endDate
+ *         in: path
+ *         required: true
+ *         description: End date of the schedule
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Schedule retrieved successfully
+ *       404:
+ *         description: Movie not found
+ *       500:
+ *         description: Internal server error
+ */
 app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, async (req: Request, res: Response) => {
   const { movieId, startDate, endDate } = req.params;
 
@@ -87,6 +173,28 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
   }
 });
 
+/**
+ * @swagger
+ * /movies:
+ *   post:
+ *     tags:
+ *       - Movies
+ *     description: Create a new movie
+ *     parameters:
+ *       - title: movie
+ *         in: body
+ *         required: true
+ *         description: Movie to be created
+ *         schema:
+ *           $ref: '#/definitions/Movie'
+ *     responses:
+ *       201:
+ *         description: Movie created successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
   app.post("/movies",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = movieValidation.validate(req.body);
   
@@ -108,6 +216,36 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
     }
   });
 
+/**
+ * @swagger
+ * /movies/{id}:
+ *   patch:
+ *     tags:
+ *       - Movies
+ *     description: Update a movie
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the movie to update
+ *         schema:
+ *           type: integer
+ *       - name: movie
+ *         in: body
+ *         required: true
+ *         description: Movie data to update
+ *         schema:
+ *           $ref: '#/definitions/Movie'
+ *     responses:
+ *       200:
+ *         description: Movie updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Movie not found
+ *       500:
+ *         description: Internal server error
+ */
   app.patch("/movies/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateMovieValidation.validate({
       ...req.params,
@@ -141,6 +279,30 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
     }
   });
 
+/**
+ * @swagger
+ * /movies/{id}:
+ *   delete:
+ *     tags:
+ *       - Movies
+ *     description: Delete a movie
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the movie to delete
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Movie deleted successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Movie not found
+ *       500:
+ *         description: Internal server error
+ */
   app.delete("/movies/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteMovieValidation.validate(req.params);
 
@@ -169,6 +331,28 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
       res.status(500).send({ message: "Internal server error" });
     }
   });
-
+/**
+ * @swagger
+ * definitions:
+ *   Movie:
+ *     type: object
+ *     properties:
+ *       title:
+ *         type: string
+ *         description: The title of the movie
+ *       description:
+ *         type: string
+ *         description: The description of the movie
+ *       imageUrl:
+ *         type: string
+ *         description: The URL of the movie's image
+ *       duration:
+ *         type: integer
+ *         description: The duration of the movie in minutes
+ *     required:
+ *       - title
+ *       - description
+ *       - duration
+ */
 };
 

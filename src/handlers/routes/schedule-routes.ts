@@ -18,6 +18,21 @@ export const initScheduleRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 
+/**
+   * @swagger
+   * /schedules:
+   *   get:
+   *     tags:
+   *       - Schedules
+   *     description: Returns all schedules
+   *     responses:
+   *       200:
+   *         description: Successful operation
+   *       400:
+   *         description: Validation error
+   *       500:
+   *         description: Internal server error
+   */
   app.get("/schedules",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
 
@@ -49,6 +64,28 @@ export const initScheduleRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /schedules/{scheduleId}:
+ *   get:
+ *     tags:
+ *       - Schedules
+ *     summary: Get a schedule by ID
+ *     parameters:
+ *       - in: path
+ *         name: scheduleId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The schedule ID
+ *     responses:
+ *       200:
+ *         description: The schedule was found
+ *       404:
+ *         description: The schedule was not found
+ *       500:
+ *         description: Internal server error
+ */
   app.get("/schedules/:scheduleId", authenticateToken, async (req: Request, res: Response) => {
     const { scheduleId } = req.params;
   
@@ -67,6 +104,36 @@ export const initScheduleRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /schedules/{startDate}/{endDate}:
+ *   get:
+ *     tags:
+ *       - Schedules
+ *     summary: Get schedules between two dates
+ *     parameters:
+ *       - in: path
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The start date
+ *       - in: path
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The end date
+ *     responses:
+ *       200:
+ *         description: The schedules were found
+ *       404:
+ *         description: The schedules were not found
+ *       500:
+ *         description: Internal server error
+ */
   app.get("/schedules/:startDate/:endDate",authenticateToken,  async (req: Request, res: Response) => {
     const { startDate, endDate } = req.params;
   
@@ -85,6 +152,41 @@ export const initScheduleRoutes = (app: express.Express) => {
     }
 });
 
+/**
+ * @swagger
+ * /schedules:
+ *   post:
+ *     tags:
+ *       - Schedules
+ *     description: Create a new schedule
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: schedule
+ *         description: Schedule object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             date:
+ *               type: string
+ *               format: date-time
+ *               description: The date and time of the schedule in ISO 8601 format
+ *             movieId:
+ *               type: integer
+ *               description: The ID of the movie
+ *             auditoriumId:
+ *               type: integer
+ *               description: The ID of the auditorium
+ *     responses:
+ *       201:
+ *         description: The schedule was created
+ *       400:
+ *         description: The request was invalid
+ *       500:
+ *         description: Internal server error
+ */
 app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
   const validation = scheduleValidation.validate(req.body);
 
@@ -146,6 +248,41 @@ app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, re
   }
 });
 
+/**
+ * @swagger
+ * /schedules/{id}:
+ *   patch:
+ *     tags:
+ *       - Schedules
+ *     summary: Update a schedule
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: schedule
+ *         description: Schedule object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             date:
+ *               type: string
+ *               format: date-time
+ *               description: The date and time of the schedule in ISO 8601 format
+ *             movieId:
+ *               type: integer
+ *               description: The ID of the movie
+ *             auditoriumId:
+ *               type: integer
+ *               description: The ID of the auditorium
+ *     responses:
+ *       200:
+ *         description: The schedule was updated
+ *       404:
+ *         description: The schedule was not found
+ *       500:
+ *         description: Internal server error
+ */
   app.patch("/schedules/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateScheduleValidation.validate({
       ...req.params,
@@ -179,7 +316,28 @@ app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, re
     }
   });
 
-
+/**
+ * @swagger
+ * /schedules/{id}:
+ *   delete:
+ *     tags:
+ *       - Schedules
+ *     summary: Delete a schedule
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The schedule ID
+ *     responses:
+ *       200:
+ *         description: The schedule was deleted
+ *       404:
+ *         description: The schedule was not found
+ *       500:
+ *         description: Internal server error
+ */
   app.delete("/schedules/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteScheduleValidation.validate(req.params);
 
@@ -208,6 +366,5 @@ app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, re
       res.status(500).send({ message: "Internal server error" });
     }
   });
-
 };
 

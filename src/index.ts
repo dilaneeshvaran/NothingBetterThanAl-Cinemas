@@ -8,6 +8,8 @@ import {initUserRoutes } from "./handlers/routes/user-routes";
 import { initTransactionRoutes } from "./handlers/routes/transaction-routes";
 import { AppDataSource } from "./database/database";
 
+const { swaggerUi, specs } = require('./swagger');
+
 const main = async () => {
   const app = express();
   const port = 3000;
@@ -22,6 +24,8 @@ const main = async () => {
   }
 
   app.use(express.json());
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
   initAuditoriumRoutes(app);
   initTicketRoutes(app);
   initScheduleRoutes(app);

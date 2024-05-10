@@ -19,7 +19,21 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
     res.send({ message: "hello world" });
   });
-
+/**
+ * @swagger
+ * /auditoriums:
+ *   get:
+ *     tags:
+ *       - Auditoriums
+ *     description: Get a list of auditoriums
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal error
+ */
   app.get("/auditoriums", authenticateToken, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
 
@@ -51,6 +65,28 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /auditoriums/{auditoriumId}:
+ *   get:
+ *     tags:
+ *       - Auditoriums
+ *     description: Get an auditorium by ID
+ *     parameters:
+ *       - name: auditoriumId
+ *         in: path
+ *         required: true
+ *         description: ID of the auditorium
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *       404:
+ *         description: Auditorium not found
+ *       500:
+ *         description: Internal server error
+ */
   app.get("/auditoriums/:auditoriumId",authenticateToken,  async (req: Request, res: Response) => {
     const { auditoriumId } = req.params;
   
@@ -69,7 +105,45 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
-
+/**
+ * @swagger
+ * /auditoriums:
+ *   post:
+ *     tags:
+ *       - Auditoriums
+ *     description: Create a new auditorium
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: auditorium
+ *         description: Auditorium object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             description:
+ *               type: string
+ *             imageUrl:
+ *               type: string
+ *             type:
+ *               type: string
+ *             capacity:
+ *               type: integer
+ *             handicapAccessible:
+ *               type: boolean
+ *             maintenance:
+ *               type: boolean
+ *     responses:
+ *       201:
+ *         description: Auditorium created successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
   app.post("/auditoriums",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = auditoriumValidation.validate(req.body);
 
@@ -90,6 +164,51 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /auditoriums/{id}:
+ *   patch:
+ *     tags:
+ *       - Auditoriums
+ *     description: Update an existing auditorium
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the auditorium to update
+ *         schema:
+ *           type: integer
+ *       - name: auditorium
+ *         in: body
+ *         required: true
+ *         description: Auditorium object to update
+ *         schema:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             description:
+ *               type: string
+ *             imageUrl:
+ *               type: string
+ *             type:
+ *               type: string
+ *             capacity:
+ *               type: integer
+ *             handicapAccessible:
+ *               type: boolean
+ *             maintenance:
+ *               type: boolean
+ *     responses:
+ *       200:
+ *         description: Auditorium updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Auditorium not found
+ *       500:
+ *         description: Internal server error
+ */
   app.patch("/auditoriums/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateAuditoriumValidation.validate({
       ...req.params,
@@ -123,7 +242,30 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
-
+/**
+ * @swagger
+ * /auditoriums/{id}:
+ *   delete:
+ *     tags:
+ *       - Auditoriums
+ *     description: Delete an auditorium
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the auditorium to delete
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Auditorium deleted successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Auditorium not found
+ *       500:
+ *         description: Internal server error
+ */
   app.delete("/auditoriums/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteAuditoriumValidation.validate(req.params);
 
@@ -154,7 +296,37 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     }
   });
 
-
+/**
+ * @swagger
+ * /auditoriums/{auditoriumId}/schedules/{startDate}:
+ *   get:
+ *     tags:
+ *       - Auditoriums
+ *     description: Get the schedule for an auditorium
+ *     parameters:
+ *       - name: auditoriumId
+ *         in: path
+ *         required: true
+ *         description: ID of the auditorium
+ *         schema:
+ *           type: integer
+ *       - name: startDate
+ *         in: path
+ *         required: true
+ *         description: Start date of the schedule
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Schedule retrieved successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Schedule not found
+ *       500:
+ *         description: Internal server error
+ */
   app.get("/auditoriums/:auditoriumId/schedules/:startDate",authenticateToken,  async (req: Request, res: Response) => {
     const validation = listAuditoriumScheduleValidation.validate(req.params);
   

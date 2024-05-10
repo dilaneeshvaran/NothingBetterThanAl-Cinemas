@@ -18,7 +18,7 @@ export class SuperTicket {
     usedSchedules: number[];
 
     constructor(
-        price: number = 15,
+        price: number = 100,
         usesRemaining: number = 10,
         usedSchedules: number[] = []
     ) {

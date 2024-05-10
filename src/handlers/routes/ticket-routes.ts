@@ -16,7 +16,18 @@ export const initTicketRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
     res.send({ message: "hello world" });
   });
-
+/**
+ * @swagger
+ * /tickets:
+ *   get:
+ *     tags:
+ *       - Tickets
+ *     summary: Get tickets
+ *     description: Retrieve tickets from the server
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
   app.get("/tickets",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listValidation.validate(req.query);
   
@@ -47,7 +58,24 @@ export const initTicketRoutes = (app: express.Express) => {
       res.status(500).send({ error: "Internal server error" });
     }
   });
-
+/**
+ * @swagger
+ * /tickets/{ticketId}:
+ *   get:
+ *     tags:
+ *       - Tickets
+ *     summary: Get ticket by ID
+ *     description: Retrieve a specific ticket by its ID
+ *     parameters:
+ *       - in: path
+ *         name: ticketId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
   app.get("/tickets/:ticketId",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const { ticketId } = req.params;
   
@@ -66,6 +94,28 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /tickets:
+ *   post:
+ *     tags:
+ *       - Tickets
+ *     summary: Create a ticket
+ *     description: Create a new ticket
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             scheduleId:
+ *               type: integer
+ *               description: The ID of the schedule for the ticket
+ *     responses:
+ *       201:
+ *         description: Successful response
+ */
   app.post("/tickets", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const validation = ticketValidation.validate(req.body);
 
@@ -100,6 +150,36 @@ export const initTicketRoutes = (app: express.Express) => {
   }
 });
 
+/**
+ * @swagger
+ * /tickets/{id}:
+ *   patch:
+ *     tags:
+ *       - Tickets
+ *     summary: Update a ticket
+ *     description: Update a specific ticket by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: body
+ *         name: body
+ *         required: false
+ *         schema:
+ *           type: object
+ *           properties:
+ *             scheduleId:
+ *               type: integer
+ *               description: The ID of the schedule for the ticket
+ *             used:
+ *               type: boolean
+ *               description: The usage status of the ticket
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
   app.patch("/tickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateTicketValidation.validate({
       ...req.params,
@@ -133,6 +213,24 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
+  /**
+ * @swagger
+ * /tickets/{id}/validate:
+ *   get:
+ *     tags:
+ *       - Tickets
+ *     summary: Validate a ticket
+ *     description: Validate a specific ticket by its ID
+ *     parameters:
+ *       - in: path
+ *         name: ticket id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
   app.get("/tickets/:id/validate", authenticateToken, async (req: Request, res: Response) => {
     const ticketId = Number(req.params.id);
     const ticketUsecase = new TicketUsecase(AppDataSource);
@@ -157,6 +255,24 @@ export const initTicketRoutes = (app: express.Express) => {
     res.status(200).send({ isValidated: true });
 });
 
+/**
+ * @swagger
+ * /tickets/{id}:
+ *   delete:
+ *     tags:
+ *       - Tickets
+ *     summary: Delete a ticket
+ *     description: Delete a specific ticket by its ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
   app.delete("/tickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteTicketValidation.validate(req.params);
 

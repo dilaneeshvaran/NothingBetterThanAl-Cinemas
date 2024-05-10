@@ -1,11 +1,13 @@
 import Joi from "joi";
 
 export interface SuperTicketValidation {
-  price: number;
+  price?: number;
+  userId?: number;
 }
 
 export const superTicketValidation = Joi.object<SuperTicketValidation>({
   price: Joi.number().optional(),
+  userId: Joi.number().optional(),
 });
 
 export interface DeleteSuperTicketValidation {

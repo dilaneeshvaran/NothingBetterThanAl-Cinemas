@@ -9,6 +9,33 @@ export const initTransactionRoutes = (app: express.Express) => {
     app.get("/health", (req: Request, res: Response) => {
       res.send({ message: "hello world" });
     });
+/**
+ * @swagger
+ * /transactions/deposit:
+ *   post:
+ *     tags:
+ *       - Transactions
+ *     description: Deposit an amount to the user's account
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             amount:
+ *               type: number
+ *               description: The amount to deposit
+ *     responses:
+ *       200:
+ *         description: Deposit successful
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found or deposit fail
+ *       500:
+ *         description: Internal error
+ */
 app.post("/transactions/deposit", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const { amount } = req.body;
   
@@ -31,6 +58,33 @@ app.post("/transactions/deposit", authenticateToken, async (req: RequestWithUser
     }
 });
 
+/**
+ * @swagger
+ * /transactions/withdraw:
+ *   post:
+ *     tags:
+ *       - Transactions
+ *     description: Withdraw an amount from the user's account
+ *     parameters:
+ *       - in: body
+ *         name: amount
+ *         required: true
+ *         schema:
+ *           type: number
+ *           properties:
+ *             amount:
+ *               type: number
+ *               description: The amount to deposit
+ *     responses:
+ *       200:
+ *         description: Withdrawal successful
+ *       401:
+ *         description: Unauthorized
+ *       400:
+ *         description: User not found, insufficient balance, or withdrawal failed
+ *       500:
+ *         description: Internal error
+ */
 app.post("/transactions/withdraw", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const { amount } = req.body;
   
@@ -53,6 +107,23 @@ app.post("/transactions/withdraw", authenticateToken, async (req: RequestWithUse
     }
 });
 
+/**
+ * @swagger
+ * /transactions/balance:
+ *   get:
+ *     tags:
+ *       - Transactions
+ *     description: Get the balance of the authenticated user
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal error
+ */
 app.get("/transactions/balance", authenticateToken, async (req: RequestWithUser, res: Response) => {
   if (!req.user) {
     res.status(401).send({ error: "Unauthorized" });
@@ -73,6 +144,19 @@ app.get("/transactions/balance", authenticateToken, async (req: RequestWithUser,
   }
 });
 
+/**
+ * @swagger
+ * /transactions/all:
+ *   get:
+ *     tags:
+ *       - Transactions
+ *     description: Get all transactions (Admin only)
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *       500:
+ *         description: Internal error
+ */
   app.get("/transactions/all", authenticateToken,authorizeAdmin, async (req: RequestWithUser, res: Response) => {
     try {
       const transactionUsecase = new TransactionUsecase(AppDataSource);
@@ -83,6 +167,21 @@ app.get("/transactions/balance", authenticateToken, async (req: RequestWithUser,
     }
   });
 
+  /**
+ * @swagger
+ * /transactions:
+ *   get:
+ *     tags:
+ *       - Transactions
+ *     description: Get the transactions of the authenticated user
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal error
+ */
   app.get("/transactions", authenticateToken, async (req: RequestWithUser, res: Response) => {
     if (!req.user) {
       res.status(401).send({ error: "Unauthorized" });

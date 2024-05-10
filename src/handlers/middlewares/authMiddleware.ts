@@ -1,8 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import { tokenRevocationList } from '../routes/user-routes';
 
 interface RequestWithUser extends Request {
   user?: any;
+  token?:any;
 }
 
 export function authenticateToken(req: RequestWithUser, res: Response, next: NextFunction) {
@@ -11,9 +13,12 @@ export function authenticateToken(req: RequestWithUser, res: Response, next: Nex
 
     if (token == null) return res.sendStatus(401)
 
+    if (tokenRevocationList.includes(token)) return res.sendStatus(401)
+
     jwt.verify(token, 'your_secret_key', (err, user) => {
         if (err) return res.sendStatus(403)
         req.user = user
+        req.token = token  // Attach the token to the req object
         next()
     })
 }

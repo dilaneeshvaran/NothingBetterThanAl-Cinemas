@@ -12,11 +12,24 @@ import { AppDataSource } from "../../database/database";
 import { SuperTicket } from "../../database/entities/super-ticket";
 import { SuperTicketUsecase } from "../../domain/super-ticket-usecase";
 
+import { RequestWithUser } from "../../types/request-with-user";
+
 export const initSuperTicketRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
     res.send({ message: "hello world" });
   });
 
+/**
+ * @swagger
+ * /supertickets:
+ *   get:
+ *     tags:
+ *       - SuperTickets
+ *     description: Returns all SuperTickets
+ *     responses:
+ *       200:
+ *         description: An array of SuperTickets
+ */
   app.get("/supertickets",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = listSuperTicketValidation.validate(req.query);
   
@@ -48,6 +61,22 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /supertickets/{superTicketId}:
+ *   get:
+ *     tags:
+ *       - SuperTickets
+ *     description: Returns a specific SuperTicket
+ *     parameters:
+ *       - name: superTicketId
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: A SuperTicket object
+ */
   app.get("/supertickets/:superTicketId",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const { superTicketId } = req.params;
   
@@ -66,27 +95,75 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
-  app.post("/supertickets", authenticateToken, async (req: Request, res: Response) => {
-    const validation = superTicketValidation.validate(req.body);
-  
-    if (validation.error) {
-      res
-        .status(400)
-        .send(generateValidationErrorMessage(validation.error.details));
-      return;
-    }
-  
-    const superTicketRequest = validation.value;
-    const superTicketRepo = AppDataSource.getRepository(SuperTicket);
-    
-    try {
-      const superTicketCreated = await superTicketRepo.save(superTicketRequest);
-      res.status(201).send(superTicketCreated);
-    } catch (error) {
-      res.status(500).send({ error: "Internal error" });
-    }
-  });
+/**
+ * @swagger
+ * /supertickets:
+ *   post:
+ *     tags:
+ *       - SuperTickets
+ *     description: Creates a new SuperTicket
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       201:
+ *         description: Successfully created a SuperTicket
+ */
+app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: Response) => {
+  const validation = superTicketValidation.validate(req.body);
 
+  if (validation.error) {
+    res
+      .status(400)
+      .send(generateValidationErrorMessage(validation.error.details));
+    return;
+  }
+
+  const superTicketRequest = validation.value;
+  if (!req.user) {
+    res.status(401).send({ error: "Unauthorized" });
+    return;
+  }
+  superTicketRequest.userId = req.user.id;
+  const superTicketRepo = AppDataSource.getRepository(SuperTicket);
+  
+  try {
+    const superTicketCreated = await superTicketRepo.save(superTicketRequest);
+    res.status(201).send(superTicketCreated);
+  } catch (error) {
+    res.status(500).send({ error: "Internal error" });
+  }
+});
+
+/**
+ * @swagger
+ * /supertickets/{id}:
+ *   patch:
+ *     tags:
+ *       - SuperTickets
+ *     description: Updates a specific SuperTicket
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: body
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             usesRemaining:
+ *               type: integer
+ *               description: The remaining uses of the SuperTicket
+ *             usedSchedules:
+ *               type: array
+ *               items:
+ *                 type: integer
+ *               description: The schedules used by the SuperTicket
+ *     responses:
+ *       200:
+ *         description: Successfully updated the SuperTicket
+ */
   app.patch("/supertickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateSuperTicketValidation.validate({
       ...req.params,
@@ -120,6 +197,31 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
   });
 
+/**
+ * @swagger
+ * /supertickets/{id}/bookSchedule:
+ *   patch:
+ *     tags:
+ *       - SuperTickets
+ *     description: Books a schedule for a specific SuperTicket
+ *     parameters:
+ *       - name: superticket id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: body
+ *         in: body
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             scheduleId:
+ *               type: integer
+ *               description: The ID of the schedule to book
+ *     responses:
+ *       200:
+ *         description: Successfully booked the schedule for the SuperTicket
+ */
   app.patch("/supertickets/:id/bookSchedule", authenticateToken, async (req: Request, res: Response) => {
     
     const validation = updateSuperTicketValidation.validate(req.params);
@@ -144,6 +246,22 @@ export const initSuperTicketRoutes = (app: express.Express) => {
     }
 });
 
+/**
+ * @swagger
+ * /supertickets/{id}/validate:
+ *   get:
+ *     tags:
+ *       - SuperTickets
+ *     description: Validates a specific SuperTicket
+ *     parameters:
+ *       - name: superticket id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Validation result of the SuperTicket
+ */
 app.get("/supertickets/:id/validate", authenticateToken, async (req: Request, res: Response) => {
   const superTicketId = Number(req.params.id);
   const superTicketUsecase = new SuperTicketUsecase(AppDataSource);
@@ -152,6 +270,22 @@ app.get("/supertickets/:id/validate", authenticateToken, async (req: Request, re
   res.status(200).send({ isValid });
 });
 
+/**
+ * @swagger
+ * /supertickets/{id}:
+ *   delete:
+ *     tags:
+ *       - SuperTickets
+ *     description: Deletes a specific SuperTicket
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully deleted the SuperTicket
+ */
   app.delete("/supertickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = deleteSuperTicketValidation.validate(req.params);
 
