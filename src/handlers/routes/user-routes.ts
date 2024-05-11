@@ -21,7 +21,7 @@ export const initUserRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /users:
  *   get:
  *     tags:
@@ -65,23 +65,24 @@ export const initUserRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /users/{userId}:
  *   get:
  *     tags:
  *       - Users
- *     description: Returns a single user
- *     produces:
- *       - application/json
  *     parameters:
- *       - name: userId
- *         description: User's id
- *         in: path
+ *       - in: path
+ *         name: userId
  *         required: true
- *         type: integer
+ *         schema:
+ *           type: integer
  *     responses:
- *       200:
- *         description: A single user
+ *       '200':
+ *         description: OK
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
  */
   app.get("/users/:userId",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const { userId } = req.params;
@@ -102,21 +103,18 @@ export const initUserRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /users:
  *   post:
  *     tags:
  *       - Users
  *     description: Creates a new user
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: user
- *         description: User object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/User'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
  *     responses:
  *       201:
  *         description: Successfully created
@@ -154,7 +152,7 @@ export const initUserRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /users/{id}:
  *   patch:
  *     tags:
@@ -227,33 +225,27 @@ app.patch("/users/:id",authenticateToken, async (req: Request, res: Response) =>
   });
 
 /**
- * @swagger
+ * @openapi
  * /users/{id}/role:
  *   patch:
  *     tags:
  *       - Users
  *     description: Changes a user's role
- *     produces:
- *       - application/json
  *     parameters:
  *       - name: id
- *         description: User's id
  *         in: path
  *         required: true
- *         type: integer
+ *         schema:
+ *           type: integer
  *       - in: body
- *         name: body
+ *         name: role
  *         required: true
  *         schema:
- *           type: object
- *           properties:
- *             role:
- *               type: string
- *               enum: [admin/client]
- *               description: The new role for the user
+ *           type: string
+ *           enum: [admin, client]
  *     responses:
  *       200:
- *         description: Updated user
+ *         description: Role updated successfully
  *       404:
  *         description: User not found
  */
@@ -272,7 +264,7 @@ app.patch("/users/:id",authenticateToken, async (req: Request, res: Response) =>
 });
 
 /**
- * @swagger
+ * @openapi
  * /users/{id}:
  *   delete:
  *     tags:
@@ -324,27 +316,25 @@ app.patch("/users/:id",authenticateToken, async (req: Request, res: Response) =>
   });
 
 /**
- * @swagger
+ * @openapi
  * /users/login:
  *   post:
  *     tags:
  *       - Users
  *     description: Authenticates a user
- *     produces:
- *       - application/json
- *     parameters:
- *       - in: body
- *         name: body
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             email:
- *               type: string
- *               description: The email of the user
- *             password:
- *               type: string
- *               description: The password of the user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: The email of the user
+ *               password:
+ *                 type: string
+ *                 description: The password of the user
  *     responses:
  *       200:
  *         description: User authenticated successfully
@@ -389,7 +379,7 @@ app.patch("/users/:id",authenticateToken, async (req: Request, res: Response) =>
   });
 
 /**
- * @swagger
+ * @openapi
  * /users/logout:
  *   post:
  *     tags:
@@ -411,44 +401,45 @@ app.post("/users/logout", authenticateToken, async (req: RequestWithUser, res: R
   }
   res.status(200).send({ message: "User logged out successfully" });
 });
-  /**
-   * @swagger
-   * definitions:
-   *   User:
-   *     type: object
-   *     required:
-   *       - name
-   *       - email
-   *       - password
-   *       - role
-   *     properties:
-   *       name:
-   *         type: string
-   *       password:
-   *         type: string
-   *       email:
-   *         type: string
-   *       role:
-   *         type: string
-   *         enum: [admin/client]
-   */
-
 /**
- * @swagger
+ * @openapi
  * components:
  *   schemas:
  *     User:
  *       type: object
  *       required:
- *         - username
+ *         - name
+ *         - email
+ *         - password
+ *         - role
+ *       properties:
+ *         name:
+ *           type: string
+ *         password:
+ *           type: string
+ *         email:
+ *           type: string
+ *         role:
+ *           type: string
+ *           enum: [admin, client]
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserLogin:
+ *       type: object
+ *       required:
+ *         - email
  *         - password
  *       properties:
- *         username:
+ *         email:
  *           type: string
  *         password:
  *           type: string
  *       example:
- *         username: user1
+ *         email: user1@gmail.com
  *         password: passw0rd
  */
 };

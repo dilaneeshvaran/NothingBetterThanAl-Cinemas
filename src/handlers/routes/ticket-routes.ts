@@ -17,7 +17,7 @@ export const initTicketRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 /**
- * @swagger
+ * @openapi
  * /tickets:
  *   get:
  *     tags:
@@ -59,7 +59,7 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 /**
- * @swagger
+ * @openapi
  * /tickets/{ticketId}:
  *   get:
  *     tags:
@@ -95,26 +95,62 @@ export const initTicketRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /tickets:
  *   post:
  *     tags:
  *       - Tickets
  *     summary: Create a ticket
  *     description: Create a new ticket
- *     parameters:
- *       - name: body
- *         in: body
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             scheduleId:
- *               type: integer
- *               description: The ID of the schedule for the ticket
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               scheduleId:
+ *                 type: integer
+ *                 description: The ID of the schedule for the ticket
+ *               price:
+ *                 type: number
+ *                 description: The price of the ticket
  *     responses:
  *       201:
- *         description: Successful response
+ *         description: Successful response, returns the created ticket and transaction
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ticket:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     scheduleId:
+ *                       type: integer
+ *                     price:
+ *                       type: number
+ *                     userId:
+ *                       type: integer
+ *                 transaction:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     userId:
+ *                       type: integer
+ *                     type:
+ *                       type: string
+ *                     amount:
+ *                       type: number
+ *       400:
+ *         description: Bad request, validation error
+ *       401:
+ *         description: Unauthorized, user not authenticated
+ *       500:
+ *         description: Internal server error
  */
   app.post("/tickets", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const validation = ticketValidation.validate(req.body);
@@ -151,7 +187,7 @@ export const initTicketRoutes = (app: express.Express) => {
 });
 
 /**
- * @swagger
+ * @openapi
  * /tickets/{id}:
  *   patch:
  *     tags:
@@ -164,18 +200,19 @@ export const initTicketRoutes = (app: express.Express) => {
  *         required: true
  *         schema:
  *           type: integer
- *       - in: body
- *         name: body
- *         required: false
- *         schema:
- *           type: object
- *           properties:
- *             scheduleId:
- *               type: integer
- *               description: The ID of the schedule for the ticket
- *             used:
- *               type: boolean
- *               description: The usage status of the ticket
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               scheduleId:
+ *                 type: integer
+ *                 description: The ID of the schedule for the ticket
+ *               used:
+ *                 type: boolean
+ *                 description: The usage status of the ticket
  *     responses:
  *       200:
  *         description: Successful response
@@ -213,26 +250,56 @@ export const initTicketRoutes = (app: express.Express) => {
     }
   });
 
-  /**
- * @swagger
+/**
+ * @openapi
  * /tickets/{id}/validate:
  *   get:
  *     tags:
  *       - Tickets
  *     summary: Validate a ticket
- *     description: Validate a specific ticket by its ID
+ *     description: Validate a ticket by its ID
  *     parameters:
  *       - in: path
- *         name: ticket id
- *         required: true
+ *         name: id
  *         schema:
  *           type: integer
+ *         required: true
+ *         description: Numeric ID of the ticket to validate
  *     responses:
  *       200:
- *         description: Successful response
+ *         description: Successful validation, returns true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isValidated:
+ *                   type: boolean
+ *       400:
+ *         description: Bad request, ticket already used or validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isValidated:
+ *                   type: boolean
+ *       404:
+ *         description: Not found, ticket not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isValidated:
+ *                   type: boolean
  */
   app.get("/tickets/:id/validate", authenticateToken, async (req: Request, res: Response) => {
     const ticketId = Number(req.params.id);
+if (isNaN(ticketId)) {
+    res.status(400).send({ error: 'Invalid ticket ID' });
+    return;
+}
     const ticketUsecase = new TicketUsecase(AppDataSource);
     const ticket = await ticketUsecase.getTicketById(ticketId);
 
@@ -256,7 +323,7 @@ export const initTicketRoutes = (app: express.Express) => {
 });
 
 /**
- * @swagger
+ * @openapi
  * /tickets/{id}:
  *   delete:
  *     tags:
@@ -265,7 +332,7 @@ export const initTicketRoutes = (app: express.Express) => {
  *     description: Delete a specific ticket by its ID
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: ticketId
  *         required: true
  *         schema:
  *           type: integer

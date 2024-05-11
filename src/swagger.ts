@@ -1,16 +1,15 @@
-const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
-const options = {
-  swaggerDefinition: {
+const options: swaggerJsdoc.Options = {
+  definition: {
+    openapi: '3.0.0',
     info: {
       title: 'Nothing Better Than AL Cinemas',
       version: '1.0.0',
       description: 'A simple API for a cinema managing system (tickets/auditorium/scheduling etc..)',
     },
-    basePath: '/',
     components: {
-      schemas: {},
       securitySchemes: {
         bearerAuth: {
           type: 'http',
@@ -30,4 +29,4 @@ const options = {
 
 const specs = swaggerJsdoc(options);
 
-module.exports = { swaggerUi, specs };
+export { swaggerUi, specs };

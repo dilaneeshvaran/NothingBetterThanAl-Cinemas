@@ -5,7 +5,7 @@ import {
   superTicketValidation,
   updateSuperTicketValidation,
   deleteSuperTicketValidation,
-  listSuperTicketValidation
+  listSuperTicketValidation,bookSuperTicketValidation
 } from "../validators/super-ticket-validator";
 import { generateValidationErrorMessage } from "../validators/generate-validation-message";
 import { AppDataSource } from "../../database/database";
@@ -20,7 +20,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets:
  *   get:
  *     tags:
@@ -62,7 +62,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets/{superTicketId}:
  *   get:
  *     tags:
@@ -96,7 +96,7 @@ export const initSuperTicketRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets:
  *   post:
  *     tags:
@@ -135,7 +135,7 @@ app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: R
 });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets/{id}:
  *   patch:
  *     tags:
@@ -145,24 +145,34 @@ app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: R
  *       - name: id
  *         in: path
  *         required: true
- *         type: integer
- *       - name: body
- *         in: body
- *         required: true
  *         schema:
- *           type: object
- *           properties:
- *             usesRemaining:
- *               type: integer
- *               description: The remaining uses of the SuperTicket
- *             usedSchedules:
- *               type: array
- *               items:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               usesRemaining:
  *                 type: integer
- *               description: The schedules used by the SuperTicket
+ *                 description: The remaining uses of the SuperTicket
+ *               usedSchedules:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 description: The schedules used by the SuperTicket
+ *             required:
+ *               - usesRemaining
  *     responses:
  *       200:
  *         description: Successfully updated the SuperTicket
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: SuperTicket not found
+ *       500:
+ *         description: Internal error
  */
   app.patch("/supertickets/:id",authenticateToken, authorizeAdmin, async (req: Request, res: Response) => {
     const validation = updateSuperTicketValidation.validate({
@@ -198,33 +208,41 @@ app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: R
   });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets/{id}/bookSchedule:
  *   patch:
  *     tags:
  *       - SuperTickets
- *     description: Books a schedule for a specific SuperTicket
+ *     summary: Books a schedule for a specific SuperTicket
+ *     description: Updates a SuperTicket with the specified schedule.
  *     parameters:
- *       - name: superticket id
+ *       - name: id
  *         in: path
+ *         description: The ID of the SuperTicket to update.
  *         required: true
- *         type: integer
+ *         schema:
+ *           type: integer
  *       - name: body
  *         in: body
  *         required: true
+ *         description: Request body for updating the SuperTicket schedule.
  *         schema:
  *           type: object
  *           properties:
  *             scheduleId:
  *               type: integer
- *               description: The ID of the schedule to book
+ *               description: The ID of the schedule to book.
  *     responses:
  *       200:
- *         description: Successfully booked the schedule for the SuperTicket
+ *         description: Successfully booked the schedule for the SuperTicket.
+ *       400:
+ *         description: Bad request. Indicates an issue with the request parameters or body.
+ *       500:
+ *         description: Internal server error. Indicates a server-side issue occurred.
  */
   app.patch("/supertickets/:id/bookSchedule", authenticateToken, async (req: Request, res: Response) => {
     
-    const validation = updateSuperTicketValidation.validate(req.params);
+    const validation = bookSuperTicketValidation.validate({ ...req.params, ...req.body });
 
     if (validation.error) {
       res
@@ -235,6 +253,7 @@ app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: R
 
     const updateSuperTicketReq = validation.value;
     const scheduleId = req.body.scheduleId; 
+    
     try {
       const superTicketUsecase = new SuperTicketUsecase(AppDataSource);
       const updatedSuperTicket = await superTicketUsecase.bookSchedule(updateSuperTicketReq.id, scheduleId);
@@ -247,7 +266,7 @@ app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: R
 });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets/{id}/validate:
  *   get:
  *     tags:
@@ -271,7 +290,7 @@ app.get("/supertickets/:id/validate", authenticateToken, async (req: Request, re
 });
 
 /**
- * @swagger
+ * @openapi
  * /supertickets/{id}:
  *   delete:
  *     tags:

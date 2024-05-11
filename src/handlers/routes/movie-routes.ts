@@ -11,6 +11,7 @@ import { AppDataSource } from "../../database/database";
 import { Movie } from "../../database/entities/movie";
 import { MovieUsecase } from "../../domain/movie-usecase";
 import { ScheduleUsecase } from "../../domain/schedule-usecase";
+import moment from "moment";
 
 export const initMovieRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -18,7 +19,7 @@ export const initMovieRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /movies:
  *   get:
  *     tags:
@@ -77,7 +78,7 @@ app.get("/movies",authenticateToken,  async (req: Request, res: Response) => {
 });
 
 /**
- * @swagger
+ * @openapi
  * /movies/{movieId}:
  *   get:
  *     tags:
@@ -119,43 +120,69 @@ app.get("/movies/:movieId",authenticateToken,  async (req: Request, res: Respons
 });
 
 /**
- * @swagger
+ * @openapi
  * /movies/{movieId}/schedules/{startDate}/{endDate}:
  *   get:
  *     tags:
  *       - Movies
- *     description: Get the schedule for a movie between two dates
+ *     summary: Get a movie and its schedules between two dates by movie ID
  *     parameters:
- *       - name: movieId
- *         in: path
+ *       - in: path
+ *         name: movieId
  *         required: true
- *         description: ID of the movie
  *         schema:
  *           type: integer
- *       - name: startDate
- *         in: path
+ *         description: The movie ID
+ *       - in: path
+ *         name: startDate
  *         required: true
- *         description: Start date of the schedule
  *         schema:
  *           type: string
  *           format: date
- *       - name: endDate
- *         in: path
+ *         description: The start date
+ *       - in: path
+ *         name: endDate
  *         required: true
- *         description: End date of the schedule
  *         schema:
  *           type: string
  *           format: date
+ *         description: The end date
  *     responses:
  *       200:
- *         description: Schedule retrieved successfully
+ *         description: The movie and its schedules were found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 movie:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                 schedules:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
  *       404:
- *         description: Movie not found
+ *         description: The movie was not found
  *       500:
  *         description: Internal server error
  */
 app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, async (req: Request, res: Response) => {
   const { movieId, startDate, endDate } = req.params;
+
+  if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
+    res.status(400).send({ error: "Invalid date format" });
+    return;
+  }
+  if (!moment(startDate, 'YYYY-MM-DD', true).isValid() || !moment(endDate, 'YYYY-MM-DD', true).isValid()) {
+    res.status(400).send({ error: "Invalid date format" });
+    return;
+  }
 
   try {
     const movieUsecase = new MovieUsecase(AppDataSource);
@@ -174,19 +201,18 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
 });
 
 /**
- * @swagger
+ * @openapi
  * /movies:
  *   post:
  *     tags:
  *       - Movies
  *     description: Create a new movie
- *     parameters:
- *       - title: movie
- *         in: body
- *         required: true
- *         description: Movie to be created
- *         schema:
- *           $ref: '#/definitions/Movie'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/Movie'
  *     responses:
  *       201:
  *         description: Movie created successfully
@@ -217,7 +243,7 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
   });
 
 /**
- * @swagger
+ * @openapi
  * /movies/{id}:
  *   patch:
  *     tags:
@@ -230,12 +256,12 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
  *         description: ID of the movie to update
  *         schema:
  *           type: integer
- *       - name: movie
- *         in: body
- *         required: true
- *         description: Movie data to update
- *         schema:
- *           $ref: '#/definitions/Movie'
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UpdateMovie'
  *     responses:
  *       200:
  *         description: Movie updated successfully
@@ -280,7 +306,7 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
   });
 
 /**
- * @swagger
+ * @openapi
  * /movies/{id}:
  *   delete:
  *     tags:
@@ -332,7 +358,7 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
     }
   });
 /**
- * @swagger
+ * @openapi
  * definitions:
  *   Movie:
  *     type: object
@@ -353,6 +379,26 @@ app.get("/movies/:movieId/schedules/:startDate/:endDate", authenticateToken, asy
  *       - title
  *       - description
  *       - duration
+ */
+
+/**
+ * @openapi
+ * definitions:
+ *   UpdateMovie:
+ *     type: object
+ *     properties:
+ *       title:
+ *         type: string
+ *         description: The title of the movie
+ *       description:
+ *         type: string
+ *         description: The description of the movie
+ *       imageUrl:
+ *         type: string
+ *         description: The URL of the movie's image
+ *       duration:
+ *         type: integer
+ *         description: The duration of the movie in minutes
  */
 };
 

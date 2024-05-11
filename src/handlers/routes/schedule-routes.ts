@@ -19,7 +19,7 @@ export const initScheduleRoutes = (app: express.Express) => {
   });
 
 /**
-   * @swagger
+   * @openapi
    * /schedules:
    *   get:
    *     tags:
@@ -65,7 +65,7 @@ export const initScheduleRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /schedules/{scheduleId}:
  *   get:
  *     tags:
@@ -81,6 +81,18 @@ export const initScheduleRoutes = (app: express.Express) => {
  *     responses:
  *       200:
  *         description: The schedule was found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *             examples:
+ *               example1:
+ *                 summary: Example Schedule
+ *                 value:
+ *                   id: 1
  *       404:
  *         description: The schedule was not found
  *       500:
@@ -105,12 +117,11 @@ export const initScheduleRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /schedules/{startDate}/{endDate}:
  *   get:
  *     tags:
  *       - Schedules
- *     summary: Get schedules between two dates
  *     parameters:
  *       - in: path
  *         name: startDate
@@ -118,20 +129,18 @@ export const initScheduleRoutes = (app: express.Express) => {
  *         schema:
  *           type: string
  *           format: date
- *         description: The start date
  *       - in: path
  *         name: endDate
  *         required: true
  *         schema:
  *           type: string
  *           format: date
- *         description: The end date
  *     responses:
- *       200:
- *         description: The schedules were found
- *       404:
- *         description: The schedules were not found
- *       500:
+ *       '200':
+ *         description: OK
+ *       '404':
+ *         description: Schedule not found
+ *       '500':
  *         description: Internal server error
  */
   app.get("/schedules/:startDate/:endDate",authenticateToken,  async (req: Request, res: Response) => {
@@ -153,32 +162,29 @@ export const initScheduleRoutes = (app: express.Express) => {
 });
 
 /**
- * @swagger
+ * @openapi
  * /schedules:
  *   post:
  *     tags:
  *       - Schedules
- *     description: Create a new schedule
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: schedule
- *         description: Schedule object
- *         in: body
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             date:
- *               type: string
- *               format: date-time
- *               description: The date and time of the schedule in ISO 8601 format
- *             movieId:
- *               type: integer
- *               description: The ID of the movie
- *             auditoriumId:
- *               type: integer
- *               description: The ID of the auditorium
+ *     summary: Create a new schedule
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The date and time of the schedule in ISO 8601 format
+ *               movieId:
+ *                 type: integer
+ *                 description: The ID of the movie
+ *               auditoriumId:
+ *                 type: integer
+ *                 description: The ID of the auditorium
  *     responses:
  *       201:
  *         description: The schedule was created
@@ -249,7 +255,7 @@ app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, re
 });
 
 /**
- * @swagger
+ * @openapi
  * /schedules/{id}:
  *   patch:
  *     tags:
@@ -258,9 +264,15 @@ app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, re
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: schedule
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the schedule to update
+ *       - in: body
+ *         name: schedule
  *         description: Schedule object
- *         in: body
  *         required: true
  *         schema:
  *           type: object
@@ -317,7 +329,7 @@ app.post("/schedules",authenticateToken, authorizeAdmin, async (req: Request, re
   });
 
 /**
- * @swagger
+ * @openapi
  * /schedules/{id}:
  *   delete:
  *     tags:

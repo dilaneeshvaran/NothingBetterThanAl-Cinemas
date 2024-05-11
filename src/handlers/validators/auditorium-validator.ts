@@ -64,10 +64,9 @@ export const updateAuditoriumValidation = Joi.object<UpdateAuditoriumRequest>({
 
 export interface ListAuditoriumScheduleRequest {
   auditoriumId: number,
-  startDate: Date,
+  startDate: Date | string,
 }
 
 export const listAuditoriumScheduleValidation = Joi.object<ListAuditoriumScheduleRequest>({
   auditoriumId: Joi.number().required(),
-  startDate: Joi.date().required(),
-});
+  startDate: Joi.alternatives().try(Joi.date(), Joi.string()).required(),});

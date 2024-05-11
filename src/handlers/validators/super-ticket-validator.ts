@@ -25,6 +25,18 @@ export interface UpdateSuperTicketValidation {
   usedSchedules?: number[];
 }
 
+export interface BookSuperTicketValidation {
+  id: number;
+  scheduleId?: number;
+  usedSchedules?: number[];
+}
+
+export const bookSuperTicketValidation = Joi.object<BookSuperTicketValidation>({
+  id: Joi.number().required(),
+  scheduleId: Joi.number().optional(),
+  usedSchedules: Joi.array().items(Joi.number()).optional()
+});
+
 export const updateSuperTicketValidation = Joi.object<UpdateSuperTicketValidation>({
   id: Joi.number().required(),
   price: Joi.number().optional(),

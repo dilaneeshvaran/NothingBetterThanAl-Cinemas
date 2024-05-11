@@ -9,32 +9,71 @@ export const initTransactionRoutes = (app: express.Express) => {
     app.get("/health", (req: Request, res: Response) => {
       res.send({ message: "hello world" });
     });
+
 /**
- * @swagger
+ * @openapi
  * /transactions/deposit:
  *   post:
  *     tags:
  *       - Transactions
- *     description: Deposit an amount to the user's account
- *     parameters:
- *       - in: body
- *         name: body
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             amount:
- *               type: number
- *               description: The amount to deposit
+ *     summary: Deposit an amount to the user's account
+ *     description: This endpoint allows a user to deposit a certain amount to their account. The user must be authenticated to perform this operation.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 description: The amount to be deposited.
  *     responses:
- *       200:
+ *       '200':
  *         description: Deposit successful
- *       401:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Deposit successful"
+ *                 balance:
+ *                   type: number
+ *                   description: The updated balance after the deposit.
+ *       '401':
  *         description: Unauthorized
- *       404:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       '404':
  *         description: User not found or deposit fail
- *       500:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User not found or deposit fail"
+ *       '500':
  *         description: Internal error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal error"
  */
 app.post("/transactions/deposit", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const { amount } = req.body;
@@ -59,31 +98,29 @@ app.post("/transactions/deposit", authenticateToken, async (req: RequestWithUser
 });
 
 /**
- * @swagger
+ * @openapi
  * /transactions/withdraw:
  *   post:
  *     tags:
  *       - Transactions
- *     description: Withdraw an amount from the user's account
- *     parameters:
- *       - in: body
- *         name: amount
- *         required: true
- *         schema:
- *           type: number
- *           properties:
- *             amount:
- *               type: number
- *               description: The amount to deposit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
  *     responses:
- *       200:
- *         description: Withdrawal successful
- *       401:
+ *       '200':
+ *         description: OK
+ *       '400':
+ *         description: Bad Request
+ *       '401':
  *         description: Unauthorized
- *       400:
- *         description: User not found, insufficient balance, or withdrawal failed
- *       500:
- *         description: Internal error
+ *       '500':
+ *         description: Internal Server Error
  */
 app.post("/transactions/withdraw", authenticateToken, async (req: RequestWithUser, res: Response) => {
     const { amount } = req.body;
@@ -108,7 +145,7 @@ app.post("/transactions/withdraw", authenticateToken, async (req: RequestWithUse
 });
 
 /**
- * @swagger
+ * @openapi
  * /transactions/balance:
  *   get:
  *     tags:
@@ -145,7 +182,7 @@ app.get("/transactions/balance", authenticateToken, async (req: RequestWithUser,
 });
 
 /**
- * @swagger
+ * @openapi
  * /transactions/all:
  *   get:
  *     tags:
@@ -168,7 +205,7 @@ app.get("/transactions/balance", authenticateToken, async (req: RequestWithUser,
   });
 
   /**
- * @swagger
+ * @openapi
  * /transactions:
  *   get:
  *     tags:

@@ -137,12 +137,13 @@ async doesOverlap(schedule: Schedule): Promise<boolean> {
   const endTime = new Date(schedule.date.getTime() + scheduleDuration * 60000);
 
   // check for overlap
-  const overlappingSchedules = await repo.createQueryBuilder("schedule")
-    .innerJoin(Movie, "movie", "movie.id = schedule.movieId")
-    .where("schedule.movieId = :movieId", { movieId: schedule.movieId })
-    .andWhere("schedule.date <= :endTime AND DATE_ADD(schedule.date, INTERVAL movie.duration + 30 MINUTE) >= :startTime", 
-              { endTime: endTime, startTime: schedule.date })
-    .getMany();
+const overlappingSchedules = await repo.createQueryBuilder("schedule")
+.innerJoin(Movie, "movie", "movie.id = schedule.movieId")
+.where("schedule.movieId = :movieId", { movieId: schedule.movieId })
+.andWhere("schedule.id != :id", { id: schedule.id }) // ignore when updating
+.andWhere("schedule.date <= :endTime AND DATE_ADD(schedule.date, INTERVAL movie.duration + 30 MINUTE) >= :startTime", 
+          { endTime: endTime, startTime: schedule.date })
+.getMany();
 
   return overlappingSchedules.length > 0;
 }

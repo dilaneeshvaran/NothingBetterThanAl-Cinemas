@@ -20,7 +20,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
     res.send({ message: "hello world" });
   });
 /**
- * @swagger
+ * @openapi
  * /auditoriums:
  *   get:
  *     tags:
@@ -66,7 +66,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /auditoriums/{auditoriumId}:
  *   get:
  *     tags:
@@ -106,39 +106,42 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /auditoriums:
  *   post:
  *     tags:
  *       - Auditoriums
  *     description: Create a new auditorium
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: auditorium
- *         description: Auditorium object
- *         in: body
- *         required: true
- *         schema:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *             description:
- *               type: string
- *             imageUrl:
- *               type: string
- *             type:
- *               type: string
- *             capacity:
- *               type: integer
- *             handicapAccessible:
- *               type: boolean
- *             maintenance:
- *               type: boolean
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               capacity:
+ *                 type: integer
+ *               handicapAccessible:
+ *                 type: boolean
+ *               maintenance:
+ *                 type: boolean
  *     responses:
  *       201:
  *         description: Auditorium created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Auditorium'
  *       400:
  *         description: Validation error
  *       500:
@@ -165,7 +168,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /auditoriums/{id}:
  *   patch:
  *     tags:
@@ -178,27 +181,27 @@ export const initAuditoriumRoutes = (app: express.Express) => {
  *         description: ID of the auditorium to update
  *         schema:
  *           type: integer
- *       - name: auditorium
- *         in: body
- *         required: true
- *         description: Auditorium object to update
- *         schema:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *             description:
- *               type: string
- *             imageUrl:
- *               type: string
- *             type:
- *               type: string
- *             capacity:
- *               type: integer
- *             handicapAccessible:
- *               type: boolean
- *             maintenance:
- *               type: boolean
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               capacity:
+ *                 type: integer
+ *               handicapAccessible:
+ *                 type: boolean
+ *               maintenance:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Auditorium updated successfully
@@ -243,7 +246,7 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /auditoriums/{id}:
  *   delete:
  *     tags:
@@ -297,12 +300,14 @@ export const initAuditoriumRoutes = (app: express.Express) => {
   });
 
 /**
- * @swagger
+ * @openapi
  * /auditoriums/{auditoriumId}/schedules/{startDate}:
  *   get:
  *     tags:
  *       - Auditoriums
  *     description: Get the schedule for an auditorium
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: auditoriumId
  *         in: path
@@ -320,6 +325,17 @@ export const initAuditoriumRoutes = (app: express.Express) => {
  *     responses:
  *       200:
  *         description: Schedule retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 scheduleIds:
+ *                   type: array
+ *                   items:
+ *                     type: integer
  *       400:
  *         description: Validation error
  *       404:
