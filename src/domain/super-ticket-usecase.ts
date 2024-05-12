@@ -106,12 +106,13 @@ export class SuperTicketUsecase {
         return updatedSuperTicket;
       }
 
-    async validateSuperTicket(id: number): Promise<boolean> {
+      async validateSuperTicket(id: number): Promise<boolean | null> {
         const repo = this.db.getRepository(SuperTicket);
         const superTicket = await repo.findOne({ where: { id } });
-    
+      
         if (!superTicket || !superTicket.usedSchedules) {
-            return false;
+          console.log('No super tickets found');
+          return null;
         }
     
         const scheduleUsecase = new ScheduleUsecase(AppDataSource);

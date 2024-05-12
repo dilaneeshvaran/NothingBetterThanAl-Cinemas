@@ -10,6 +10,11 @@ export const superTicketValidation = Joi.object<SuperTicketValidation>({
   userId: Joi.number().optional(),
 });
 
+export const buySuperTicketValidation = Joi.object<SuperTicketValidation>({
+  price: Joi.number().required(),
+  userId: Joi.number().required(),
+});
+
 export interface DeleteSuperTicketValidation {
   id: number;
 }

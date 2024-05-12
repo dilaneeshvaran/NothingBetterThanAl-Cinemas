@@ -23,9 +23,10 @@ const main = async () => {
     process.exit(1);
   }
 
+  
   app.use(express.json());
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-
+  
   initAuditoriumRoutes(app);
   initTicketRoutes(app);
   initScheduleRoutes(app);

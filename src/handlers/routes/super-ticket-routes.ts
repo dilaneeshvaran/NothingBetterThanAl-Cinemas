@@ -13,6 +13,8 @@ import { SuperTicket } from "../../database/entities/super-ticket";
 import { SuperTicketUsecase } from "../../domain/super-ticket-usecase";
 
 import { RequestWithUser } from "../../types/request-with-user";
+import { User } from "../../database/entities/user";
+import { TransactionUsecase } from "../../domain/transaction-usecase";
 
 export const initSuperTicketRoutes = (app: express.Express) => {
   app.get("/health", (req: Request, res: Response) => {
@@ -123,6 +125,21 @@ app.post("/supertickets", authenticateToken, async (req: RequestWithUser, res: R
     res.status(401).send({ error: "Unauthorized" });
     return;
   }
+
+  superTicketRequest.userId = req.user.id;
+
+const transactionUsecase = new TransactionUsecase(AppDataSource);
+const balance = await transactionUsecase.getBalance(req.user.id);
+if (balance === null) {
+  res.status(404).send({ error: "User not found" });
+  return;
+}
+if (balance < 100) {
+  res.status(400).send({ error: "Insufficient balance" });
+  return;
+}
+
+
   superTicketRequest.userId = req.user.id;
   const superTicketRepo = AppDataSource.getRepository(SuperTicket);
   
@@ -286,7 +303,11 @@ app.get("/supertickets/:id/validate", authenticateToken, async (req: Request, re
   const superTicketUsecase = new SuperTicketUsecase(AppDataSource);
   const isValid = await superTicketUsecase.validateSuperTicket(superTicketId);
 
-  res.status(200).send({ isValid });
+  if (isValid === null) {
+    res.status(404).send({ error: 'Super ticket not found' });
+  } else {
+    res.status(200).send({ isValid });
+  }
 });
 
 /**

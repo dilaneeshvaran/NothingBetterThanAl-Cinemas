@@ -36,7 +36,7 @@ export class TicketUsecase {
         };
       }
 
-      async getTicketById(ticketId: number): Promise<Ticket> {
+      async getTicketById(ticketId: number): Promise<Ticket | null> {
         const query = this.db.createQueryBuilder(Ticket, "tickets");
       
         query.where("tickets.id = :id", { id: ticketId });
@@ -44,34 +44,33 @@ export class TicketUsecase {
         const ticket = await query.getOne();
       
         if (!ticket) {
-          throw new Error('Ticket not found');
+          return null;
         }
       
         return ticket;
-      }   
+    }
 
-      async updateTicket(
-        id: number,
-        { price, scheduleId,used }: UpdateTicketParams
-      ): Promise<Ticket | null> {
-        const repo = this.db.getRepository(Ticket);
-        const ticketFound = await repo.findOneBy({ id });
-        if (ticketFound === null) return null;
-      
-        if (price) {
-          ticketFound.price = price;
-        }        
-        if (scheduleId) {
-          ticketFound.scheduleId = scheduleId;
-        }
-
-        if (used) {
-          ticketFound.used = used;
-        }
-
-        const ticketUpdate = await repo.save(ticketFound);
-        return ticketUpdate;
+    async updateTicket(
+      id: number,
+      { price, scheduleId, used }: UpdateTicketParams
+    ): Promise<Ticket | null> {
+      const repo = this.db.getRepository(Ticket);
+      const ticketFound = await repo.findOneBy({ id });
+      if (ticketFound === null) return null;
+    
+      if (price !== undefined) {
+        ticketFound.price = price;
       }
+      if (scheduleId !== undefined) {
+        ticketFound.scheduleId = scheduleId;
+      }
+      if (used !== undefined) {
+        ticketFound.used = used;
+      }
+    
+      const ticketUpdate = await repo.save(ticketFound);
+      return ticketUpdate;
+    }
 
       
       async validateTicket(id: number): Promise<boolean> {
