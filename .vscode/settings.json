@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "undefined/subscriptions/e08e3ab3-6faa-465f-950a-b63a560626f3/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/nothingBetterThanAlTrial2",
+    "appService.deploySubpath": "."
+}
