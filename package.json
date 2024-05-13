@@ -2,9 +2,11 @@
   "name": "nbta",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start:dev": "nodemon -e ts --exec ts-node src/index.ts",
+    "start": "node ./dist/index.js",
+    "build": "tsc",
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "keywords": [],
